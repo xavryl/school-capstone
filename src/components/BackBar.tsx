@@ -13,6 +13,7 @@ const TITLES: Record<string, string> = {
   '/profile': 'Your profile',
   '/notifications': 'Updates',
   '/login': 'Sign in',
+  '/reset-password': 'New password',
   '/staff': 'Staff console',
   '/staff/reports': 'Reports',
 };
