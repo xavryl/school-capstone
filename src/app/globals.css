@@ -860,3 +860,18 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   .staff-tab.on { border-left: 0; border-bottom-color: var(--accent); }
   .staff-tab-divider { display: none; }
 }
+
+/* ---------------------------------------------- service mix on overview -- */
+.svc-list { display: flex; flex-direction: column; gap: .55rem; }
+.svc-row { display: grid; grid-template-columns: minmax(0, 1fr) 5rem auto; gap: .7rem; align-items: center; }
+.svc-name { font-size: .96rem; }
+.svc-bar {
+  height: .55rem; border-radius: 999px; background: var(--sunk);
+  overflow: hidden; display: block;
+}
+.svc-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.svc-count { font-size: .95rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 1.6rem; text-align: right; }
+@media (max-width: 34rem) {
+  .svc-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .svc-bar { display: none; }
+}

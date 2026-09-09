@@ -57,6 +57,34 @@ export default async function StaffOverview({ searchParams }: Props) {
   const total = (k: keyof (typeof perOffice)[number]) =>
     perOffice.reduce((sum, o) => sum + (o[k] as number), 0);
 
+  // The service mix is the substance of the difference between the two
+  // consoles: certificates and transcripts on one side, receipts and
+  // assessments on the other.
+  const byService = await Promise.all(
+    ctx.departments.map(async (d) => {
+      const [{ data: services }, { data: open }] = await Promise.all([
+        supabase.from('services').select('id, name').eq('department', d).eq('active', true),
+        supabase.from('requests').select('service_id')
+          .eq('department', d).not('status', 'in', '("completed","cancelled")'),
+      ]);
+
+      const names = new Map(((services ?? []) as { id: number; name: string }[])
+        .map((s) => [s.id, s.name]));
+
+      const tally = new Map<string, number>();
+      for (const r of (open ?? []) as { service_id: number }[]) {
+        const name = names.get(r.service_id) ?? 'Other';
+        tally.set(name, (tally.get(name) ?? 0) + 1);
+      }
+
+      const rows = [...tally.entries()]
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count);
+
+      return { department: d, rows, max: Math.max(1, ...rows.map((r) => r.count)) };
+    }),
+  );
+
   return (
     <div className="stack-lg">
       <header className="stack">
@@ -109,6 +137,36 @@ export default async function StaffOverview({ searchParams }: Props) {
           </div>
         </section>
       )}
+
+      <section className="stack">
+        <h2>What people are asking for</h2>
+        <p className="muted">
+          Open requests by service. This is where the two offices genuinely differ —
+          the registrar issues documents, the treasury settles money.
+        </p>
+        <div className={ctx.departments.length > 1 ? 'grid2' : ''}>
+          {byService.map((office) => (
+            <div key={office.department} className="card">
+              <h3 style={{ textTransform: 'capitalize' }}>{office.department}</h3>
+              {office.rows.length === 0 ? (
+                <p className="muted">No open requests for this office.</p>
+              ) : (
+                <div className="svc-list">
+                  {office.rows.map((r) => (
+                    <div key={r.name} className="svc-row">
+                      <span className="svc-name">{r.name}</span>
+                      <span className="svc-bar" aria-hidden="true">
+                        <span style={{ width: `${(r.count / office.max) * 100}%` }} />
+                      </span>
+                      <span className="svc-count mono">{r.count}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="stack">
         <h2>Jump to</h2>
