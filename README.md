@@ -25,15 +25,19 @@ Order matters — later files reference earlier ones.
 | `supabase/migrations/0002_functions.sql` | Queue numbering, guest inquiry, tracking, status transitions |
 | `supabase/migrations/0003_rls.sql` | Row level security policies on every table |
 | `supabase/migrations/0004_seed.sql` | The nine services and four windows from the proposal |
+| `supabase/migrations/0005_appointments_reports.sql` | Slot generation, booking, inquiry workflow, report queries |
 
 ### 3. Configure the environment
 
-```bash
-cp .env.local.example .env.local
-```
+**`.env.local` already exists** with placeholders and comments — just open it
+and paste your three values from **Project Settings → API**. Restart
+`npm run dev` afterwards; Next.js reads that file at startup.
 
-Fill in the three values from **Project Settings → API**. The service role key
-must stay in the unprefixed variable — see the comments in that file.
+The service role key must stay in the *unprefixed* variable. Anything named
+`NEXT_PUBLIC_*` is compiled into the browser bundle.
+
+Email is optional. Leave `BREVO_API_KEY` blank and `sendMail()` logs what it
+would have sent instead of failing, so nothing breaks before you set it up.
 
 ### 4. Run it
 
@@ -66,10 +70,13 @@ Reload `/staff` and the console appears.
 | `/` | Anyone | Landing, department selection |
 | `/login` | Students, staff | Sign in and sign up |
 | `/request` | Students | File a transaction request |
+| `/appointments` | Students | Book a half-hour window slot, cancel bookings |
 | `/inquiry` | Guests | Send an inquiry without an account |
 | `/track`, `/track/[reference]` | Anyone with a reference | Status and history |
+| `/notifications` | Signed-in users | Every status change, with an unread badge in the nav |
 | `/display/registrar`, `/display/treasury` | Lobby TV | Full-screen queue display |
-| `/staff` | Registrar/treasury staff | Queue console, requests, inquiries |
+| `/staff` | Registrar/treasury staff | Queue console, today's appointments, requests, inquiry replies |
+| `/staff/reports` | Staff | Summary tiles, daily chart, CSV export |
 
 Open a display route full-screen (F11) on the television. It needs no sign-in.
 
@@ -129,23 +136,22 @@ request gets its own preview URL.
 
 ---
 
-## Not built yet
+## Still open
 
-Deliberately left, in rough order of how much a panel will ask about it:
+Everything in the proposal is built. What remains is either a judgement call or
+needs credentials:
 
-1. **Appointment booking UI.** The table, the exclusion constraint, and the
-   policies are all in place; the slot picker and the staff schedule manager
-   are not.
-2. **Reports.** Add `/staff/reports` reading from `request_events` — it is an
-   append-only audit trail, so daily counts, completion times, and queue
-   statistics are each one `GROUP BY` away. Stream CSV rather than generating a
-   PDF server-side: free Vercel functions stop at ten seconds.
-3. **Email delivery.** `notifications` rows are written on every status change;
-   wire a Brevo SMTP call into a `pg_cron` drain job.
-4. **In-app notification bell.** Table and policies exist, UI does not.
-5. **Inquiry reply box.** `respond_to_inquiry()` works; the staff page lists
-   inquiries without a reply form.
+1. **Appointment reminders.** `pg_cron` is the place for it — schedule a job
+   that reads tomorrow's bookings and inserts notification rows. Vercel's free
+   cron is capped at two once-daily jobs, which is why this belongs in Supabase.
+2. **SMS.** Not free from any provider, so the notification matrix is in-app and
+   email only. Roughly ₱500 of Semaphore credits buys about a thousand messages
+   if you want it working for the demo; it slots in as one more channel inside
+   `src/lib/email.ts`'s sibling.
+3. **Walk-in kiosk page.** `issue_queue_ticket()` exists and works; there is no
+   dedicated touch screen for the lobby yet. Staff can issue tickets from the
+   console.
+4. **Admin service editor.** Services and windows are seeded by SQL and the RLS
+   policies already allow admins to change them; there is no form for it.
 
-SMS is not on this list on purpose — no provider is free. If you want it for the
-demo, roughly ₱500 of Semaphore credits buys about a thousand messages, and it
-slots in as one more channel behind the same notification call.
+The system runs without any of these.

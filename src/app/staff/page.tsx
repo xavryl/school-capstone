@@ -1,14 +1,39 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import type { Department, QueueTicket, ServiceWindow } from '@/lib/types';
+import type { Department, InquiryStatus, QueueTicket, ServiceWindow } from '@/lib/types';
 import QueueConsole from './QueueConsole';
 import RequestRow from './RequestRow';
+import InquiryRow from './InquiryRow';
+import AppointmentList, { type StaffAppointment } from './AppointmentList';
 
 export const dynamic = 'force-dynamic';
 
+type RequestJoin = {
+  id: string;
+  reference: string;
+  status: string;
+  details: string;
+  created_at: string;
+  services: { name: string }[] | { name: string } | null;
+};
+
+type InquiryRecord = {
+  id: string;
+  reference: string;
+  name: string;
+  email: string;
+  subject: string;
+  body: string;
+  status: InquiryStatus;
+  response: string | null;
+  created_at: string;
+};
+
 export default async function StaffPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return (
@@ -37,26 +62,60 @@ export default async function StaffPage() {
   }
 
   const dept = me.department as Department;
+  const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: windows }, { data: tickets }, { data: requests }, { data: inquiries }] =
-    await Promise.all([
-      supabase.from('service_windows').select('*').eq('department', dept).eq('active', true).order('id'),
-      supabase.from('queue_tickets').select('*')
-        .eq('department', dept).eq('service_date', new Date().toISOString().slice(0, 10))
-        .order('created_at'),
-      supabase.from('requests').select('id, reference, status, details, created_at, services(name)')
-        .eq('department', dept).neq('status', 'completed').order('created_at').limit(50),
-      supabase.from('inquiries').select('id, reference, subject, name, status, created_at')
-        .eq('department', dept).neq('status', 'closed').order('created_at').limit(25),
-    ]);
+  const [
+    { data: windows },
+    { data: tickets },
+    { data: requests },
+    { data: inquiries },
+    { data: appointments },
+  ] = await Promise.all([
+    supabase.from('service_windows').select('*')
+      .eq('department', dept).eq('active', true).order('id'),
+    supabase.from('queue_tickets').select('*')
+      .eq('department', dept).eq('service_date', today).order('created_at'),
+    supabase.from('requests').select('id, reference, status, details, created_at, services(name)')
+      .eq('department', dept).neq('status', 'completed').order('created_at').limit(50),
+    supabase.from('inquiries').select('*')
+      .eq('department', dept).neq('status', 'closed').order('created_at').limit(25),
+    supabase.from('appointments')
+      .select('id, starts_at, status, service_windows(label)')
+      .gte('starts_at', `${today}T00:00:00`)
+      .lte('starts_at', `${today}T23:59:59`)
+      .order('starts_at'),
+  ]);
+
+  const requestRows = ((requests ?? []) as RequestJoin[]).map((r) => ({
+    id: r.id,
+    reference: r.reference,
+    status: r.status as never,
+    details: r.details,
+    created_at: r.created_at,
+    services: Array.isArray(r.services) ? r.services[0] : r.services,
+  }));
+
+  const appointmentRows = ((appointments ?? []) as {
+    id: string; starts_at: string; status: string;
+    service_windows: { label: string }[] | { label: string } | null;
+  }[]).map<StaffAppointment>((a) => ({
+    id: a.id,
+    starts_at: a.starts_at,
+    status: a.status,
+    window_label:
+      (Array.isArray(a.service_windows) ? a.service_windows[0] : a.service_windows)?.label ?? 'Window',
+  }));
 
   return (
     <main className="wrap stack-lg">
       <header className="stack">
-        <span className="eyebrow" style={{ textTransform: 'uppercase' }}>{dept} console</span>
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <span className="eyebrow" style={{ textTransform: 'uppercase' }}>{dept} console</span>
+          <Link className="btn ghost" href="/staff/reports">Reports</Link>
+        </div>
         <h1>Queue and transactions</h1>
         <p className="lede">
-          Signed in as {user.email}{me.is_admin ? ' \u00b7 administrator' : ''}.
+          Signed in as {user.email}{me.is_admin ? ' · administrator' : ''}.
         </p>
       </header>
 
@@ -70,47 +129,33 @@ export default async function StaffPage() {
       </section>
 
       <section className="stack">
-        <h2>Open requests &middot; {requests?.length ?? 0}</h2>
+        <h2>Today&rsquo;s appointments &middot; {appointmentRows.length}</h2>
+        <AppointmentList rows={appointmentRows} />
+      </section>
+
+      <section className="stack">
+        <h2>Open requests &middot; {requestRows.length}</h2>
         <div className="scroller">
           <table>
             <thead>
               <tr><th>Reference</th><th>Service</th><th>Status</th><th>Update</th></tr>
             </thead>
             <tbody>
-              {(requests ?? []).length === 0 && (
+              {requestRows.length === 0 && (
                 <tr><td colSpan={4} className="muted">No open requests.</td></tr>
               )}
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(requests ?? []).map((r: any) => (
-                <RequestRow key={r.id} row={{ ...r, services: Array.isArray(r.services) ? r.services[0] : r.services }} />
-              ))}
+              {requestRows.map((r) => <RequestRow key={r.id} row={r} />)}
             </tbody>
           </table>
         </div>
       </section>
 
       <section className="stack">
-        <h2>Open inquiries &middot; {inquiries?.length ?? 0}</h2>
-        <div className="scroller">
-          <table>
-            <thead>
-              <tr><th>Reference</th><th>From</th><th>Subject</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {(inquiries ?? []).length === 0 && (
-                <tr><td colSpan={4} className="muted">No open inquiries.</td></tr>
-              )}
-              {(inquiries ?? []).map((i) => (
-                <tr key={i.id}>
-                  <td className="mono">{i.reference}</td>
-                  <td>{i.name}</td>
-                  <td>{i.subject}</td>
-                  <td><span className="pill warn">{i.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <h2>Open inquiries &middot; {(inquiries ?? []).length}</h2>
+        {(inquiries ?? []).length === 0 && <p className="muted">No open inquiries.</p>}
+        {((inquiries ?? []) as InquiryRecord[]).map((i) => (
+          <InquiryRow key={i.id} row={i} />
+        ))}
       </section>
     </main>
   );
