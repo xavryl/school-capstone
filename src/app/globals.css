@@ -1,26 +1,161 @@
 @import "tailwindcss";
 
+/* Palette carried over from the stack document: deep blue-black ground,
+   soft blue accent, warm amber as the "now serving" signal. Single committed
+   theme -- the lobby television has no light mode. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+  --ground: #0e1218;
+  --surface: #161b24;
+  --sunk: #1a212b;
+  --ink: #e2e8f1;
+  --muted: #98a3b4;
+  --faint: #6f7b8c;
+  --line: #28303c;
+  --line-soft: #1f2630;
+  --accent: #8fb3ea;
+  --accent-soft: #1b2740;
+  --signal: #e29a4d;
+  --good: #74bf92;
+  --bad: #e2726d;
+  --f-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+* { box-sizing: border-box; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--f-display);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
+
+.wrap { max-width: 62rem; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+.narrow { max-width: 38rem; }
+
+/* ---------------------------------------------------------- typography -- */
+h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+h2 { font-size: 1.2rem; font-weight: 600; letter-spacing: -.01em; margin: 0; }
+h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+p  { margin: 0; line-height: 1.6; }
+.lede { color: var(--muted); font-size: 1.02rem; }
+.eyebrow {
+  font-family: var(--f-mono); font-size: .66rem; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--signal);
+}
+.label {
+  font-family: var(--f-mono); font-size: .64rem; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--faint);
+}
+.muted { color: var(--muted); }
+.mono { font-family: var(--f-mono); }
+
+/* -------------------------------------------------------------- layout -- */
+.stack { display: flex; flex-direction: column; gap: 1rem; }
+.stack-lg { display: flex; flex-direction: column; gap: 2rem; }
+.row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+.grid2 { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 44rem) { .grid2 { grid-template-columns: 1fr 1fr; } }
+
+/* --------------------------------------------------------------- cards -- */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 4px; padding: 1.15rem 1.25rem;
+  display: flex; flex-direction: column; gap: .6rem;
+}
+a.card { text-decoration: none; color: inherit; transition: border-color .15s ease; }
+a.card:hover { border-color: var(--accent); }
+
+/* --------------------------------------------------------------- forms -- */
+label.field { display: flex; flex-direction: column; gap: .35rem; }
+input, textarea, select {
+  background: var(--sunk); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 3px;
+  padding: .6rem .7rem; font: inherit; font-size: .95rem; width: 100%;
+}
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent;
+}
+textarea { min-height: 7rem; resize: vertical; }
+
+button, .btn {
+  font: inherit; font-weight: 600; font-size: .92rem; cursor: pointer;
+  background: var(--accent); color: #0e1218; border: 1px solid var(--accent);
+  border-radius: 3px; padding: .58rem 1rem; text-decoration: none;
+  display: inline-flex; align-items: center; gap: .4rem;
+}
+button:hover, .btn:hover { filter: brightness(1.08); }
+button:disabled { opacity: .5; cursor: not-allowed; filter: none; }
+button.ghost, .btn.ghost {
+  background: transparent; color: var(--ink); border-color: var(--line);
+}
+button.ghost:hover { border-color: var(--accent); filter: none; }
+button.warn { background: var(--signal); border-color: var(--signal); }
+
+/* --------------------------------------------------------------- pills -- */
+.pill {
+  font-family: var(--f-mono); font-size: .66rem; letter-spacing: .08em;
+  text-transform: uppercase; padding: .22rem .5rem; border-radius: 2px;
+  border: 1px solid var(--line); color: var(--muted); white-space: nowrap;
+}
+.pill.on { background: var(--accent); border-color: var(--accent); color: #0e1218; }
+.pill.done { background: var(--accent-soft); border-color: var(--accent-soft); color: var(--accent); }
+.pill.warn { border-color: var(--signal); color: var(--signal); }
+.pill.good { border-color: var(--good); color: var(--good); }
+
+/* ------------------------------------------------------------- notices -- */
+.notice {
+  border-left: 3px solid var(--signal); background: #2a2318;
+  padding: .8rem 1rem; border-radius: 0 3px 3px 0; font-size: .92rem;
+}
+.notice.good { border-color: var(--good); background: #16241c; }
+.notice.bad { border-color: var(--bad); background: #2a1a1a; }
+
+/* -------------------------------------------------------------- tables -- */
+.scroller { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; }
+table { border-collapse: collapse; width: 100%; background: var(--surface); }
+th, td { text-align: left; padding: .65rem .85rem; border-bottom: 1px solid var(--line-soft); font-size: .9rem; vertical-align: top; }
+th { background: var(--sunk); color: var(--faint); font-family: var(--f-mono); font-size: .62rem; letter-spacing: .13em; text-transform: uppercase; font-weight: 500; }
+tbody tr:last-child td { border-bottom: 0; }
+
+/* ------------------------------------------------------------ nav/foot -- */
+.topbar {
+  border-bottom: 1px solid var(--line); background: var(--surface);
+  padding: .8rem 1.5rem; display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap;
+}
+.topbar a { color: var(--muted); text-decoration: none; font-size: .92rem; }
+.topbar a:hover { color: var(--ink); }
+.topbar .brand { color: var(--ink); font-weight: 700; letter-spacing: -.01em; }
+.spacer { flex: 1; }
+
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+/* ------------------------------------------------------ TV display only -- */
+.tv { min-height: 100vh; display: flex; flex-direction: column; padding: 2.5vh 3vw; gap: 2vh; }
+.tv-head { display: flex; align-items: baseline; gap: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 1.5vh; }
+.tv-dept { font-size: 3vw; font-weight: 700; letter-spacing: -.02em; }
+.tv-clock { margin-left: auto; font-family: var(--f-mono); font-size: 1.6vw; color: var(--muted); }
+.tv-body { flex: 1; display: grid; grid-template-columns: 2.2fr 1fr; gap: 2vw; min-height: 0; }
+.tv-serving { display: grid; gap: 1.5vh; align-content: start; }
+.tv-slot {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  padding: 2.2vh 2vw; display: flex; align-items: center; gap: 2vw;
+}
+.tv-slot.live { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); }
+.tv-num { font-size: 6.5vw; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tv-slot.live .tv-num { color: var(--signal); }
+.tv-win { margin-left: auto; text-align: right; }
+.tv-win-label { font-size: 2.6vw; font-weight: 600; }
+.tv-next { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 2vh 1.5vw; }
+.tv-next ol { list-style: none; margin: 1.5vh 0 0; padding: 0; display: grid; gap: 1vh; }
+.tv-next li { font-family: var(--f-mono); font-size: 2.4vw; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tv-foot { display: flex; gap: 1rem; align-items: center; font-size: 1.1vw; color: var(--faint); border-top: 1px solid var(--line); padding-top: 1.2vh; }
+.dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--good); }
+.dot.stale { background: var(--signal); }
+.dot.dead { background: var(--bad); }
+
+/* The lobby television has no navigation. */
+body:has(.tv) .topbar { display: none; }
