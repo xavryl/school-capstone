@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { signOut } from '@/app/login/actions';
-import ProfileForm from './ProfileForm';
+import type { Profile } from '@/lib/profile';
+import ProfileEditor from './ProfileEditor';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,41 +24,47 @@ export default async function ProfilePage() {
   }
 
   const [{ data: profile }, { data: staffRow }] = await Promise.all([
-    supabase.from('profiles').select('full_name, student_no').eq('id', user.id).maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('id, full_name, student_no, avatar_path, banner_path, bio, program, year_level, contact_number')
+      .eq('id', user.id)
+      .maybeSingle(),
     supabase.from('staff').select('department, is_admin').eq('user_id', user.id).maybeSingle(),
   ]);
 
   const role = staffRow
-    ? staffRow.is_admin
-      ? 'Administrator'
-      : `${staffRow.department} staff`
+    ? staffRow.is_admin ? 'Administrator' : `${staffRow.department} staff`
     : 'School member';
+
+  // The row is created by the handle_new_user trigger; this fallback keeps the
+  // page usable if the migrations were run after the account was made.
+  const p: Profile = (profile as Profile) ?? {
+    id: user.id,
+    full_name: '',
+    student_no: null,
+    avatar_path: null,
+    banner_path: null,
+    bio: null,
+    program: null,
+    year_level: null,
+    contact_number: null,
+  };
 
   return (
     <main className="wrap narrow stack-lg">
       <header className="stack">
-        <span className="eyebrow">Account</span>
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <span className="eyebrow">Account</span>
+          <span className="pill on" style={{ textTransform: 'capitalize' }}>{role}</span>
+        </div>
         <h1>Your profile</h1>
         <p className="lede">
-          The name here is what the office sees on your requests, so make it match your
-          school records.
+          The name and number here are what the office sees on your requests, so make them
+          match your school records.
         </p>
       </header>
 
-      <div className="card stack">
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <span>
-            <span className="label">Signed in as</span>
-            <div className="mono">{user.email}</div>
-          </span>
-          <span className="pill on" style={{ textTransform: 'capitalize' }}>{role}</span>
-        </div>
-      </div>
-
-      <ProfileForm
-        fullName={profile?.full_name ?? ''}
-        studentNo={profile?.student_no ?? ''}
-      />
+      <ProfileEditor profile={p} email={user.email ?? ''} />
 
       <div className="card stack">
         <h2>Sign out</h2>

@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/app/login/actions';
+import { initials } from '@/lib/profile';
 
 export type NavProps = {
   email: string | null;
   unread: number;
   isStaff: boolean;
+  avatarUrl: string | null;
+  fullName: string | null;
 };
 
 const PUBLIC_LINKS = [
@@ -19,7 +22,7 @@ const PUBLIC_LINKS = [
   { href: '/track', label: 'Track' },
 ];
 
-export default function NavClient({ email, unread, isStaff }: NavProps) {
+export default function NavClient({ email, unread, isStaff, avatarUrl, fullName }: NavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -121,10 +124,15 @@ export default function NavClient({ email, unread, isStaff }: NavProps) {
               <Link
                 href="/profile"
                 className="avatar"
-                title={`Signed in as ${email}`}
+                title={`Signed in as ${fullName || email}`}
                 aria-label="Your profile"
               >
-                {email.slice(0, 1)}
+                {avatarUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatarUrl} alt="" className="avatar-img" />
+                ) : (
+                  initials(fullName, email)
+                )}
               </Link>
               <form action={signOut} className="desktop-only">
                 <button className="nav-signout">Sign out</button>

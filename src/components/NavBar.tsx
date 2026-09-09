@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { mediaUrl } from '@/lib/profile';
 import NavClient from './NavClient';
 
 /**
@@ -12,6 +13,8 @@ export default async function NavBar() {
   let email: string | null = null;
   let unread = 0;
   let isStaff = false;
+  let avatarUrl: string | null = null;
+  let fullName: string | null = null;
 
   try {
     const supabase = await createClient();
@@ -30,10 +33,23 @@ export default async function NavBar() {
       ]);
       unread = count ?? 0;
       isStaff = Boolean(staffRow);
+
+      const { data: prof } = await supabase
+        .from('profiles').select('full_name, avatar_path').eq('id', user.id).maybeSingle();
+      fullName = prof?.full_name ?? null;
+      avatarUrl = mediaUrl(prof?.avatar_path);
     }
   } catch {
     // No credentials yet, tables not created, or the project is asleep.
   }
 
-  return <NavClient email={email} unread={unread} isStaff={isStaff} />;
+  return (
+    <NavClient
+      email={email}
+      unread={unread}
+      isStaff={isStaff}
+      avatarUrl={avatarUrl}
+      fullName={fullName}
+    />
+  );
 }

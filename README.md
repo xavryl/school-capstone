@@ -16,7 +16,7 @@ region closest to you.
 
 ### 2. Run the migrations
 
-Open **SQL Editor** in the Supabase dashboard and run these six files in order.
+Open **SQL Editor** in the Supabase dashboard and run these seven files in order.
 Order matters — later files reference earlier ones.
 
 | File | What it creates |
@@ -27,8 +27,12 @@ Order matters — later files reference earlier ones.
 | `0004_seed.sql` | The nine services and four windows from the proposal |
 | `0005_appointments_reports.sql` | Slot generation, booking, inquiry workflow, report queries |
 | `0006_attachments_kiosk_announcements.sql` | Document storage, queue issuance, announcements, reminders |
+| `0007_profile_media.sql` | Profile pictures, banners, and the rest of the profile fields |
 
-The last file also contains the two `pg_cron` schedules — appointment reminders
+Or paste `supabase/run-all-migrations.sql` once — it is all seven concatenated
+in order.
+
+`0006` also contains the two `pg_cron` schedules — appointment reminders
 and the keep-alive — commented out at the bottom. Uncomment and run them once
 your project is live.
 
@@ -79,7 +83,7 @@ Reload `/staff` and the console appears.
 | `/appointments` | Students | Book a half-hour window slot, cancel bookings |
 | `/inquiry` | Guests | Send an inquiry without an account |
 | `/track`, `/track/[reference]` | Anyone with a reference | Status and history |
-| `/profile` | Signed-in users | Name, student number, secure sign-out |
+| `/profile` | Signed-in users | Picture, banner, name, number, program, bio, sign-out |
 | `/notifications` | Signed-in users | Every status change, with an unread badge in the nav |
 | `/display/registrar`, `/display/treasury` | Lobby TV | Full-screen queue display |
 | `/staff` | Registrar/treasury staff | Queue console, walk-in tickets, announcements, appointments, requests, inquiry replies |
