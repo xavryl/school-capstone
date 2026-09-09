@@ -16,16 +16,13 @@
      glare; two points off it costs no measurable contrast and reads softer. */
   --surface: #fcfdff;
   --sunk: #eaeff6;
-  --bg: linear-gradient(168deg, #e9f0fa 0%, #f6f2ea 52%, #e8eef8 100%);
-  /* Carried further than the dark values on purpose: the same alpha over a
-     light ground barely shifts it, so the bands washed out to nothing here.
-     Measured at seven points across the tinted ground, ink lands 12.3-14.5:1
-     and muted 5.8-6.9:1 -- clear of AA, and muted gives up the AAA it holds
-     on a card. That is the price of a visible band, and body text on the
-     ground is only the hero lede. */
-  --glow-a: rgba(86, 138, 212, .38);
-  --glow-b: rgba(230, 164, 86, .30);
-  --glow-c: rgba(90, 190, 178, .30);
+  /* Ink-on-paper grid. Two weights so it reads as drafting paper rather
+     than a single mechanical mesh: a fine cell, and a heavier line every
+     fifth one. Under 9% alpha, so the ground stays flat enough that text on
+     it measures 15.0:1 for ink and 7.1:1 for muted -- AAA for both, which
+     the tinted gradient it replaced could not hold. */
+  --grid: rgba(21, 32, 47, .055);
+  --grid-major: rgba(21, 32, 47, .085);
   --ink: #15202f;          /* 15.8:1 on surface */
   --muted: #45536a;        /*  8.3:1 on surface */
   --faint: #5a687e;        /*  6.1:1 on surface */
@@ -56,10 +53,8 @@
     --ground: #0f141c;
     --surface: #1a2029;
     --sunk: #212a35;
-    --bg: linear-gradient(168deg, #0c1118 0%, #121926 52%, #0d131b 100%);
-    --glow-a: rgba(70, 116, 190, .22);
-    --glow-b: rgba(196, 134, 62, .13);
-    --glow-c: rgba(60, 132, 156, .15);
+    --grid: rgba(238, 243, 250, .045);
+    --grid-major: rgba(238, 243, 250, .075);
     --ink: #eef3fa;
     --muted: #b6c2d1;
     --faint: #94a2b4;
@@ -89,10 +84,8 @@
   --ground: #0f141c;
   --surface: #1a2029;
   --sunk: #212a35;
-  --bg: linear-gradient(168deg, #0c1118 0%, #121926 52%, #0d131b 100%);
-  --glow-a: rgba(70, 116, 190, .22);
-  --glow-b: rgba(196, 134, 62, .13);
-  --glow-c: rgba(60, 132, 156, .15);
+  --grid: rgba(238, 243, 250, .045);
+  --grid-major: rgba(238, 243, 250, .075);
   --ink: #eef3fa;
   --muted: #b6c2d1;
   --faint: #94a2b4;
@@ -118,7 +111,7 @@
 /* The base wash lives on <html> so it propagates to the page canvas and does
    not scroll or repeat. body stays transparent so the ambient layer below can
    sit between the wash and the content. */
-html { background: var(--bg); background-attachment: fixed; }
+html { background: var(--ground); }
 
 body {
   background: transparent;
@@ -130,26 +123,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Wave bands, in CSS. Wide flat ellipses -- a radial-gradient whose
-   horizontal radius far exceeds its vertical one -- read as a curved band
-   rather than a circle, which is what gives the sweep without any SVG.
-   Fixed, so it is one composited layer however long the page is, and
-   pointer-events: none so it can never intercept a tap. Nothing moves. */
+/* The grid. Fixed, so it is one composited layer however long the page is,
+   and pointer-events: none so it can never intercept a tap. Four gradients:
+   a fine cell in both directions, then a heavier line every fifth. */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background:
-    radial-gradient(155% 52% at 50% -12%, var(--glow-a) 0%, transparent 62%),
-    radial-gradient(135% 42% at 12% 42%, var(--glow-c) 0%, transparent 64%),
-    radial-gradient(145% 48% at 88% 74%, var(--glow-b) 0%, transparent 62%),
-    radial-gradient(125% 38% at 38% 112%, var(--glow-a) 0%, transparent 60%);
+  background-image:
+    linear-gradient(to right, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--grid) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 160px 160px, 160px 160px, 32px 32px, 32px 32px;
 }
 
-/* Softer behind the queue numbers on a wall screen. */
-body:has(.tv)::before { opacity: .45; }
+/* Fainter behind the queue numbers on a wall screen. */
+body:has(.tv)::before { opacity: .5; }
 
 .wrap { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
 .narrow { max-width: 40rem; }
