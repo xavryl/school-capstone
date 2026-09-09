@@ -32,11 +32,24 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   const email = toEmail(identifier);
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (!error) {
+    // Staff land on the console, everyone else on the public site. Someone
+    // signing in to run a counter does not want the landing page first and
+    // then a hunt for their own console.
+    let destination = '/';
+    if (data.user) {
+      const { data: staffRow } = await supabase
+        .from('staff')
+        .select('user_id')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+      if (staffRow) destination = '/staff';
+    }
+
     revalidatePath('/', 'layout');
-    redirect('/');
+    redirect(destination);
   }
 
   const message = error.message.toLowerCase();
