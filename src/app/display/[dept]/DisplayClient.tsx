@@ -138,7 +138,7 @@ export default function DisplayClient({
           {health === '' ? 'Live' : health === 'stale' ? 'Reconnecting' : 'Offline \u2014 showing last known numbers'}
         </span>
         <span className="spacer" />
-        <span>Please listen for your number and proceed to the window shown.</span>
+        <span className="lobby-only">Please listen for your number and proceed to the window shown.</span>
       </div>
     </div>
   );

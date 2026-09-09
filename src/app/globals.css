@@ -212,25 +212,36 @@ a { color: var(--accent); }
 :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
 
 /* ------------------------------------------------------ TV display only -- */
-.tv { min-height: 100vh; display: flex; flex-direction: column; padding: 2.5vh 3vw; gap: 2vh; }
-.tv-head { display: flex; align-items: baseline; gap: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 1.5vh; }
-.tv-dept { font-size: 3vw; font-weight: 700; letter-spacing: -.02em; }
-.tv-clock { margin-left: auto; font-family: var(--f-mono); font-size: 1.6vw; color: var(--muted); }
-.tv-body { flex: 1; display: grid; grid-template-columns: 2.2fr 1fr; gap: 2vw; min-height: 0; }
-.tv-serving { display: grid; gap: 1.5vh; align-content: start; }
+/* Sized with clamp() rather than raw vw. The same page is read from across a
+   lobby on a 55-inch screen and from the hand on a phone; pure vw makes one
+   of those two illegible. */
+.tv { min-height: 100vh; display: flex; flex-direction: column; padding: clamp(.9rem, 2.5vh, 3rem) clamp(.9rem, 3vw, 4rem); gap: clamp(.8rem, 2vh, 2rem); }
+.tv-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: clamp(.6rem, 1.5vh, 1.6rem); }
+.tv-dept { font-size: clamp(1.35rem, 3vw, 3.4rem); font-weight: 700; letter-spacing: -.02em; }
+.tv-clock { margin-left: auto; font-family: var(--f-mono); font-size: clamp(.85rem, 1.6vw, 1.8rem); color: var(--muted); }
+.tv-body { flex: 1; display: grid; grid-template-columns: 2.2fr 1fr; gap: clamp(.8rem, 2vw, 2.5rem); min-height: 0; }
+.tv-serving { display: grid; gap: clamp(.6rem, 1.5vh, 1.6rem); align-content: start; }
 .tv-slot {
   background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
-  padding: 2.2vh 2vw; display: flex; align-items: center; gap: 2vw;
+  padding: clamp(.8rem, 2.2vh, 2.4rem) clamp(.9rem, 2vw, 2.4rem);
+  display: flex; align-items: center; gap: clamp(.7rem, 2vw, 2.4rem);
 }
 .tv-slot.live { border-color: var(--signal); box-shadow: inset 0 0 0 1px var(--signal); }
-.tv-num { font-size: 6.5vw; font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.tv-num { font-size: clamp(2.6rem, 6.5vw, 8rem); font-weight: 700; line-height: 1; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .tv-slot.live .tv-num { color: var(--signal); }
 .tv-win { margin-left: auto; text-align: right; }
-.tv-win-label { font-size: 2.6vw; font-weight: 600; }
-.tv-next { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 2vh 1.5vw; }
-.tv-next ol { list-style: none; margin: 1.5vh 0 0; padding: 0; display: grid; gap: 1vh; }
-.tv-next li { font-family: var(--f-mono); font-size: 2.4vw; color: var(--muted); font-variant-numeric: tabular-nums; }
-.tv-foot { display: flex; gap: 1rem; align-items: center; font-size: 1.1vw; color: var(--faint); border-top: 1px solid var(--line); padding-top: 1.2vh; }
+.tv-win-label { font-size: clamp(1.05rem, 2.6vw, 3.2rem); font-weight: 600; }
+.tv-next { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: clamp(.85rem, 2vh, 2rem) clamp(.9rem, 1.5vw, 2rem); }
+.tv-next ol { list-style: none; margin: clamp(.6rem, 1.5vh, 1.4rem) 0 0; padding: 0; display: grid; gap: clamp(.35rem, 1vh, 1rem); }
+.tv-next li { font-family: var(--f-mono); font-size: clamp(1.05rem, 2.4vw, 2.8rem); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tv-foot { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; font-size: clamp(.72rem, 1.1vw, 1.25rem); color: var(--faint); border-top: 1px solid var(--line); padding-top: clamp(.6rem, 1.2vh, 1.2rem); }
+
+/* On a phone the lobby screen becomes one column, and the standing
+   instruction is dropped -- you are not standing in the lobby. */
+@media (max-width: 48rem) {
+  .tv-body { grid-template-columns: 1fr; align-content: start; }
+  .tv-foot .lobby-only { display: none; }
+}
 .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--good); }
 .dot.stale { background: var(--signal); }
 .dot.dead { background: var(--bad); }
@@ -277,9 +288,9 @@ button.attach {
 .tv-banner {
   display: flex; align-items: baseline; gap: 1.2vw;
   border: 1px solid var(--signal); background: #2a2318;
-  border-radius: 6px; padding: 1.4vh 1.6vw; font-size: 1.8vw;
+  border-radius: 6px; padding: clamp(.7rem, 1.4vh, 1.5rem) clamp(.9rem, 1.6vw, 1.8rem); font-size: clamp(.92rem, 1.8vw, 2rem);
 }
-.tv-banner .eyebrow { font-size: 1vw; }
+.tv-banner .eyebrow { font-size: clamp(.6rem, 1vw, 1.1rem); }
 
 /* Show/hide the duplicated nav items per breakpoint. */
 .mobile-only { display: none; }
