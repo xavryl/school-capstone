@@ -286,7 +286,7 @@ tbody tr:hover td { background: var(--sunk); }
 .theme-toggle:hover { border-color: var(--accent); color: var(--accent); filter: none; }
 .theme-toggle svg { width: 1.15rem; height: 1.15rem; }
 
-@media (max-width: 60rem) {
+@media (max-width: 46rem) {
   .nav-inner { padding: .6rem .9rem; }
   .hamburger { display: inline-flex; }
   .nav-links {
@@ -301,7 +301,7 @@ tbody tr:hover td { background: var(--sunk); }
   .mobile-only { display: block; }
   .desktop-only { display: none !important; }
 }
-@media (min-width: 60.01rem) { .mobile-only { display: none; } }
+@media (min-width: 46.01rem) { .mobile-only { display: none; } }
 
 /* -------------------------------------------------------------- pipeline -- */
 .pipes { display: flex; flex-direction: column; gap: 1.6rem; }

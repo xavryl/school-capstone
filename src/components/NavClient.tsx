@@ -15,11 +15,13 @@ export type NavProps = {
   fullName: string | null;
 };
 
+/**
+ * Deliberately short. Request, Queue and Appointments all start from the
+ * picker on the home page, so listing them here as well made the bar long
+ * without adding a route anyone could not already reach in one tap.
+ */
 const PUBLIC_LINKS = [
   { href: '/', label: 'Home' },
-  { href: '/request', label: 'Request' },
-  { href: '/queue', label: 'Queue' },
-  { href: '/appointments', label: 'Appointments' },
   { href: '/inquiry', label: 'Guest inquiry' },
   { href: '/track', label: 'Track' },
 ];
