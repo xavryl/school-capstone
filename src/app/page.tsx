@@ -1,44 +1,21 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
-import { DEPARTMENTS, type Service } from '@/lib/types';
-import QuickStart from '@/components/QuickStart';
+import DepartmentPicker from '@/components/DepartmentPicker';
 import TrackInline from '@/components/TrackInline';
 
-export const dynamic = 'force-dynamic';
-
-export default async function Home() {
-  let services: Service[] = [];
-  let signedIn = false;
-
-  try {
-    const supabase = await createClient();
-    const [{ data }, { data: auth }] = await Promise.all([
-      supabase.from('services').select('*').eq('active', true).order('id'),
-      supabase.auth.getUser(),
-    ]);
-    services = (data ?? []) as Service[];
-    signedIn = Boolean(auth.user);
-  } catch {
-    // Before the migrations run, or if the project is asleep. The form below
-    // still works -- the service can be picked on the next page instead.
-  }
-
+export default function Home() {
   return (
     <main className="wrap stack-lg">
       <header className="hero reveal" style={{ '--d': '0ms' } as React.CSSProperties}>
         <span className="eyebrow">Registrar &middot; Treasury</span>
         <h1 className="hero-title">Need a transaction?</h1>
         <p className="lede">
-          Start it here. File a document request, book a time at a window, or take a
-          queue number — without lining up twice.
+          Tell us which office you need and we will take it from there — file it online,
+          book a time, or just take a number.
         </p>
+        <DepartmentPicker />
       </header>
 
-      <section className="reveal" style={{ '--d': '80ms' } as React.CSSProperties}>
-        <QuickStart services={services} signedIn={signedIn} />
-      </section>
-
-      <section className="stack reveal" style={{ '--d': '160ms' } as React.CSSProperties}>
+      <section className="stack reveal" style={{ '--d': '90ms' } as React.CSSProperties}>
         <div className="card track-card">
           <div className="stack" style={{ gap: '.4rem' }}>
             <h2>Track your transaction</h2>
@@ -51,43 +28,18 @@ export default async function Home() {
         </div>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '240ms' } as React.CSSProperties}>
-        <h2>What each office handles</h2>
-        <div className="grid2">
-          {DEPARTMENTS.map((d) => {
-            const list = services.filter((s) => s.department === d.id);
-            return (
-              <div key={d.id} className="card">
-                <h3>{d.name}</h3>
-                <p className="muted">{d.blurb}</p>
-                {list.length > 0 ? (
-                  <ul className="ticklist">
-                    {list.map((s) => (
-                      <li key={s.id}>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                             strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"
-                             aria-hidden="true">
-                          <path d="M5 13l4 4L19 7" />
-                        </svg>
-                        {s.name}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="muted" style={{ fontSize: '.95rem' }}>
-                    Service list unavailable right now.
-                  </p>
-                )}
-                <Link href={`/request?dept=${d.id}`} className="btn ghost">
-                  Request from the {d.name.toLowerCase()}
-                </Link>
-              </div>
-            );
-          })}
-        </div>
+      <section className="stack reveal" style={{ '--d': '180ms' } as React.CSSProperties}>
+        <h2>Not a student or employee?</h2>
+        <Link href="/inquiry" className="card">
+          <h3>Send a guest inquiry</h3>
+          <p className="muted">
+            No account needed. Ask the registrar or the treasury a question and you will
+            get a reference number to follow the reply.
+          </p>
+        </Link>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '320ms' } as React.CSSProperties}>
+      <section className="stack reveal" style={{ '--d': '270ms' } as React.CSSProperties}>
         <h2>How it works</h2>
         <ol className="steps">
           <li>
@@ -114,39 +66,7 @@ export default async function Home() {
         </ol>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '400ms' } as React.CSSProperties}>
-        <h2>Good to know</h2>
-        <div className="grid2">
-          <div className="card">
-            <h3>Office hours</h3>
-            <p className="muted">
-              Appointments run 8:00 AM to 5:00 PM in half-hour slots, with the lunch hour
-              closed. Queue numbers reset every morning and are counted separately for
-              each office.
-            </p>
-          </div>
-          <div className="card">
-            <h3>You do not have to wait in the lobby</h3>
-            <p className="muted">
-              Once you hold a queue number you can step away. The screen shows who is
-              being served and at which window, and your position updates on your phone.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="stack reveal" style={{ '--d': '480ms' } as React.CSSProperties}>
-        <h2>Not a student or employee?</h2>
-        <Link href="/inquiry" className="card">
-          <h3>Send a guest inquiry</h3>
-          <p className="muted">
-            No account needed. Ask the registrar or the treasury a question and you will
-            get a reference number to follow the reply.
-          </p>
-        </Link>
-      </section>
-
-      <section className="stack reveal" style={{ '--d': '560ms' } as React.CSSProperties}>
+      <section className="stack reveal" style={{ '--d': '360ms' } as React.CSSProperties}>
         <h2>Lobby displays</h2>
         <p className="muted">
           Open one of these full-screen on the television in the lobby. It reconnects on

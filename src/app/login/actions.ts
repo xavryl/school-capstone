@@ -4,16 +4,6 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 
-/**
- * Only same-site paths are honoured. A leading "/" is not enough on its own:
- * "//evil.example" is also a valid URL, and would send someone straight off
- * the site immediately after they typed their password.
- */
-function safeNext(value: FormDataEntryValue | null): string {
-  const next = String(value ?? '');
-  return next.startsWith('/') && !next.startsWith('//') ? next : '/request';
-}
-
 export async function signIn(_prev: unknown, formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
@@ -22,7 +12,7 @@ export async function signIn(_prev: unknown, formData: FormData) {
   });
   if (error) return { error: error.message };
   revalidatePath('/', 'layout');
-  redirect(safeNext(formData.get('next')));
+  redirect('/request');
 }
 
 export async function signUp(_prev: unknown, formData: FormData) {

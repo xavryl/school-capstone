@@ -3,10 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import type { Department, Service } from '@/lib/types';
 import RequestForm from './RequestForm';
 
-type Props = { searchParams: Promise<{ dept?: string; service?: string; details?: string }> };
+type Props = { searchParams: Promise<{ dept?: string }> };
 
 export default async function RequestPage({ searchParams }: Props) {
-  const { dept, service, details } = await searchParams;
+  const { dept } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: { user } }, { data: services }] = await Promise.all([
@@ -33,8 +33,6 @@ export default async function RequestPage({ searchParams }: Props) {
           initialDept={initialDept}
           email={user.email ?? ''}
           userId={user.id}
-          initialService={service ?? ''}
-          initialDetails={details ?? ''}
         />
       ) : (
         <div className="card stack">
