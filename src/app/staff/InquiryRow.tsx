@@ -16,7 +16,13 @@ type Row = {
   created_at: string;
 };
 
-export default function InquiryRow({ row }: { row: Row }) {
+export default function InquiryRow({
+  row,
+  department,
+}: {
+  row: Row;
+  department?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [reply, setReply] = useState(row.response ?? '');
   const [status, setStatus] = useState<InquiryStatus>(row.status);
@@ -31,6 +37,7 @@ export default function InquiryRow({ row }: { row: Row }) {
           <span className="muted"> &middot; {row.name}</span>
           <div className="label" style={{ marginTop: '.2rem' }}>
             {row.reference} &middot; {new Date(row.created_at).toLocaleDateString()}
+            {department && <> &middot; <span style={{ textTransform: 'capitalize' }}>{department}</span></>}
           </div>
         </span>
         <span className="row" style={{ gap: '.5rem' }}>

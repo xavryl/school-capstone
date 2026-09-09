@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getStaffGate } from '@/lib/staff';
 import type { Department } from '@/lib/types';
 import VolumeChart, { type DailyRow } from './VolumeChart';
 
@@ -34,38 +34,16 @@ function Tile({ label, value, hint }: { label: string; value: string; hint?: str
 
 export default async function ReportsPage({ searchParams }: Props) {
   const sp = await searchParams;
+  const gate = await getStaffGate(sp.dept);
+  if (gate.state !== 'ok') return null;
+
+  // Reports are per office: a combined figure would hide which one is busy,
+  // so 'all' falls back to the administrator's own office and the sidebar is
+  // where you switch.
+  const dept: Department = gate.ctx.scope === 'all' ? gate.ctx.home : gate.ctx.scope;
+  const canSwitch = gate.ctx.isAdmin;
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return (
-      <main className="wrap narrow stack-lg">
-        <h1>Staff sign-in required</h1>
-        <div className="row"><Link className="btn" href="/login">Sign in</Link></div>
-      </main>
-    );
-  }
-
-  const { data: me } = await supabase
-    .from('staff').select('department, is_admin').eq('user_id', user.id).maybeSingle();
-
-  if (!me) {
-    return (
-      <main className="wrap narrow stack-lg">
-        <h1>Not a staff account</h1>
-        <p className="lede">Reports are limited to registrar and treasury personnel.</p>
-      </main>
-    );
-  }
-
-  // Both report functions accept any department for an admin, so the
-  // proposal's separate "registrar transactions" and "treasury transactions"
-  // reports are this one page with the selector below.
-  const canSwitch = Boolean(me.is_admin);
-  const requested = sp.dept === 'treasury' || sp.dept === 'registrar' ? sp.dept : null;
-  const dept: Department = (canSwitch && requested ? requested : me.department) as Department;
 
   const to = sp.to ?? iso(new Date());
   const from = sp.from ?? iso(new Date(Date.now() - 13 * 86_400_000));
@@ -85,7 +63,7 @@ export default async function ReportsPage({ searchParams }: Props) {
     `/staff/reports/export?type=${type}&from=${from}&to=${to}&dept=${dept}`;
 
   return (
-    <main className="wrap stack-lg">
+    <div className="stack-lg">
       <header className="stack">
         <span className="eyebrow" style={{ textTransform: 'uppercase' }}>{dept} reports</span>
         <h1>Transactions and queue statistics</h1>
@@ -174,6 +152,6 @@ export default async function ReportsPage({ searchParams }: Props) {
           <a className="btn ghost" href={csv('inquiries')}>Inquiries</a>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -813,3 +813,50 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 .textlink::after { content: none; }
 
 .field-aside { display: flex; justify-content: flex-end; margin-top: -.35rem; }
+
+/* ------------------------------------------------------- staff console -- */
+.staff-shell { display: grid; grid-template-columns: 1fr; gap: 1.6rem; align-items: start; }
+@media (min-width: 62rem) {
+  .staff-shell { grid-template-columns: 15rem minmax(0, 1fr); gap: 2rem; }
+  .staff-side { position: sticky; top: 5.5rem; }
+}
+.staff-main { min-width: 0; }
+
+.staff-side { display: flex; flex-direction: column; gap: 1.1rem; }
+.staff-side-head { display: flex; flex-direction: column; gap: .15rem; }
+.staff-side-head strong { font-size: 1.02rem; text-transform: capitalize; }
+
+.staff-scope { display: flex; flex-direction: column; gap: .4rem; }
+.scope-row { display: flex; gap: .3rem; flex-wrap: wrap; }
+.scope-btn {
+  flex: 1 1 auto; text-align: center; text-decoration: none;
+  font-size: .88rem; font-weight: 600; padding: .45rem .55rem; border-radius: 7px;
+  border: 2px solid var(--line); background: var(--surface); color: var(--muted);
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.scope-btn:hover { border-color: var(--accent); color: var(--accent); }
+.scope-btn.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.staff-tabs { display: flex; flex-direction: column; gap: .2rem; }
+.staff-tab {
+  display: block; text-decoration: none; border-radius: 8px;
+  padding: .65rem .8rem; font-size: 1rem; font-weight: 600; color: var(--muted);
+  border-left: 3px solid transparent;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.staff-tab:hover { background: var(--surface); color: var(--ink); }
+.staff-tab.on {
+  background: var(--accent-soft); color: var(--accent-ink); border-left-color: var(--accent);
+}
+.staff-tab-divider {
+  font-size: .82rem; font-weight: 700; color: var(--faint);
+  padding: .9rem .8rem .3rem; border-top: 1px solid var(--line); margin-top: .5rem;
+}
+
+/* On a phone the tabs become a scrolling strip rather than a tall column. */
+@media (max-width: 62rem) {
+  .staff-tabs { flex-direction: row; overflow-x: auto; gap: .3rem; padding-bottom: .3rem; }
+  .staff-tab { white-space: nowrap; border-left: 0; border-bottom: 3px solid transparent; }
+  .staff-tab.on { border-left: 0; border-bottom-color: var(--accent); }
+  .staff-tab-divider { display: none; }
+}

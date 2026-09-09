@@ -15,9 +15,16 @@ type Row = {
   created_at: string;
   services: { name: string } | null;
   attachments: Attachment[];
+  department?: string;
 };
 
-export default function RequestRow({ row }: { row: Row }) {
+export default function RequestRow({
+  row,
+  showDepartment = false,
+}: {
+  row: Row;
+  showDepartment?: boolean;
+}) {
   const [status, setStatus] = useState<RequestStatus>(row.status);
   const [note, setNote] = useState('');
   const [pending, start] = useTransition();
@@ -40,6 +47,9 @@ export default function RequestRow({ row }: { row: Row }) {
   return (
     <tr>
       <td className="mono">{row.reference}</td>
+      {showDepartment && (
+        <td style={{ textTransform: 'capitalize' }}>{row.department}</td>
+      )}
       <td>
         {row.services?.name ?? '—'}
         <div className="muted" style={{ fontSize: '.82rem', marginTop: '.2rem' }}>

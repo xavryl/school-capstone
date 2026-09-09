@@ -1,180 +1,148 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import type {
-  Department, InquiryStatus, QueueTicket, Service, ServiceWindow,
-} from '@/lib/types';
-import QueueConsole from './QueueConsole';
-import RequestRow, { type Attachment } from './RequestRow';
-import InquiryRow from './InquiryRow';
-import AppointmentList, { type StaffAppointment } from './AppointmentList';
+import { getStaffGate, today, scopeLabel } from '@/lib/staff';
+import type { Department } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-type RequestJoin = {
-  id: string;
-  reference: string;
-  status: string;
-  details: string;
-  created_at: string;
-  services: { name: string }[] | { name: string } | null;
-  request_attachments: Attachment[] | null;
-};
+type Props = { searchParams: Promise<{ dept?: string }> };
 
-type InquiryRecord = {
-  id: string;
-  reference: string;
-  name: string;
-  email: string;
-  subject: string;
-  body: string;
-  status: InquiryStatus;
-  response: string | null;
-  created_at: string;
-};
+type Row = { department: Department; label: string; value: number; hint?: string };
 
-const one = <T,>(v: T[] | T | null): T | null =>
-  Array.isArray(v) ? (v[0] ?? null) : v;
+export default async function StaffOverview({ searchParams }: Props) {
+  const { dept } = await searchParams;
+  const gate = await getStaffGate(dept);
+  if (gate.state !== 'ok') return null; // the layout already explained why
+  const { ctx } = gate;
 
-export default async function StaffPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const day = today();
 
-  if (!user) {
-    return (
-      <main className="wrap narrow stack-lg">
-        <h1>Staff sign-in required</h1>
-        <p className="lede">This console is for registrar and treasury personnel.</p>
-        <div className="row"><Link className="btn" href="/login">Sign in</Link></div>
-      </main>
-    );
-  }
+  // One set of counts per office in scope, so "Both" is a real comparison
+  // rather than a single blended number that hides which office is busy.
+  const perOffice = await Promise.all(
+    ctx.departments.map(async (d) => {
+      const [waiting, serving, doneToday, openReq, openInq, appts] = await Promise.all([
+        supabase.from('queue_tickets').select('id', { count: 'exact', head: true })
+          .eq('department', d).eq('service_date', day).eq('state', 'waiting'),
+        supabase.from('queue_tickets').select('id', { count: 'exact', head: true })
+          .eq('department', d).eq('service_date', day).eq('state', 'serving'),
+        supabase.from('queue_tickets').select('id', { count: 'exact', head: true })
+          .eq('department', d).eq('service_date', day).eq('state', 'completed'),
+        supabase.from('requests').select('id', { count: 'exact', head: true })
+          .eq('department', d).not('status', 'in', '("completed","cancelled")'),
+        supabase.from('inquiries').select('id', { count: 'exact', head: true })
+          .eq('department', d).neq('status', 'closed'),
+        supabase.from('appointments').select('id, service_windows!inner(department)', {
+          count: 'exact', head: true,
+        })
+          .eq('service_windows.department', d)
+          .neq('status', 'cancelled')
+          .gte('starts_at', `${day}T00:00:00`)
+          .lte('starts_at', `${day}T23:59:59`),
+      ]);
 
-  const { data: me } = await supabase
-    .from('staff').select('department, is_admin').eq('user_id', user.id).maybeSingle();
+      return {
+        department: d,
+        waiting: waiting.count ?? 0,
+        serving: serving.count ?? 0,
+        doneToday: doneToday.count ?? 0,
+        openReq: openReq.count ?? 0,
+        openInq: openInq.count ?? 0,
+        appts: appts.count ?? 0,
+      };
+    }),
+  );
 
-  if (!me) {
-    return (
-      <main className="wrap narrow stack-lg">
-        <h1>Not a staff account</h1>
-        <p className="lede">
-          Your account is signed in but is not attached to a department. An administrator
-          adds you with the snippet at the bottom of <span className="mono">0004_seed.sql</span>.
-        </p>
-      </main>
-    );
-  }
-
-  const dept = me.department as Department;
-  const today = new Date().toISOString().slice(0, 10);
-
-  const [
-    { data: windows },
-    { data: services },
-    { data: tickets },
-    { data: requests },
-    { data: inquiries },
-    { data: appointments },
-    { data: banner },
-  ] = await Promise.all([
-    supabase.from('service_windows').select('*')
-      .eq('department', dept).eq('active', true).order('id'),
-    supabase.from('services').select('*')
-      .eq('department', dept).eq('active', true).order('id'),
-    supabase.from('queue_tickets').select('*')
-      .eq('department', dept).eq('service_date', today).order('created_at'),
-    supabase.from('requests')
-      .select('id, reference, status, details, created_at, services(name), request_attachments(path, filename)')
-      .eq('department', dept).neq('status', 'completed').order('created_at').limit(50),
-    supabase.from('inquiries').select('*')
-      .eq('department', dept).neq('status', 'closed').order('created_at').limit(25),
-    supabase.from('appointments')
-      .select('id, starts_at, status, service_windows(label)')
-      .gte('starts_at', `${today}T00:00:00`)
-      .lte('starts_at', `${today}T23:59:59`)
-      .order('starts_at'),
-    supabase.from('queue_announcements').select('message')
-      .eq('department', dept).eq('active', true)
-      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
-  ]);
-
-  const requestRows = ((requests ?? []) as RequestJoin[]).map((r) => ({
-    id: r.id,
-    reference: r.reference,
-    status: r.status as never,
-    details: r.details,
-    created_at: r.created_at,
-    services: one(r.services),
-    attachments: r.request_attachments ?? [],
-  }));
-
-  const appointmentRows = ((appointments ?? []) as {
-    id: string; starts_at: string; status: string;
-    service_windows: { label: string }[] | { label: string } | null;
-  }[]).map<StaffAppointment>((a) => ({
-    id: a.id,
-    starts_at: a.starts_at,
-    status: a.status,
-    window_label: one(a.service_windows)?.label ?? 'Window',
-  }));
+  const total = (k: keyof (typeof perOffice)[number]) =>
+    perOffice.reduce((sum, o) => sum + (o[k] as number), 0);
 
   return (
-    <main className="wrap stack-lg">
+    <div className="stack-lg">
       <header className="stack">
-        <div className="row" style={{ justifyContent: 'space-between' }}>
-          <span className="eyebrow" style={{ textTransform: 'uppercase' }}>{dept} console</span>
-          <span className="row" style={{ gap: '.5rem' }}>
-            <Link className="btn ghost" href={`/display/${dept}`}>Lobby screen</Link>
-            <Link className="btn ghost" href="/staff/reports">Reports</Link>
-          </span>
-        </div>
-        <h1>Queue and transactions</h1>
+        <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+        <h1>Today at a glance</h1>
         <p className="lede">
-          Signed in as {user.email}{me.is_admin ? ' · administrator' : ''}.
+          {new Date().toLocaleDateString([], {
+            weekday: 'long', day: 'numeric', month: 'long',
+          })}
+          {ctx.isAdmin && ctx.scope === 'all' && ' — both offices combined below, each broken out underneath.'}
         </p>
       </header>
 
-      <section className="stack">
-        <h2>Queue</h2>
-        <QueueConsole
-          dept={dept}
-          windows={(windows ?? []) as ServiceWindow[]}
-          services={(services ?? []) as Service[]}
-          tickets={(tickets ?? []) as QueueTicket[]}
-          announcement={banner?.message ?? ''}
-        />
+      <section className="tiles">
+        <Tile label="Waiting now" value={total('waiting')} />
+        <Tile label="At a window" value={total('serving')} />
+        <Tile label="Served today" value={total('doneToday')} />
+        <Tile label="Appointments today" value={total('appts')} />
+        <Tile label="Open requests" value={total('openReq')} />
+        <Tile label="Open inquiries" value={total('openInq')} />
       </section>
 
-      <section className="stack">
-        <h2>Today&rsquo;s appointments &middot; {appointmentRows.length}</h2>
-        <AppointmentList rows={appointmentRows} />
-      </section>
+      {ctx.scope === 'all' && (
+        <section className="stack">
+          <h2>By office</h2>
+          <div className="scroller">
+            <table>
+              <thead>
+                <tr>
+                  <th>Office</th><th>Waiting</th><th>At a window</th>
+                  <th>Served</th><th>Appointments</th><th>Open requests</th><th>Open inquiries</th>
+                </tr>
+              </thead>
+              <tbody>
+                {perOffice.map((o) => (
+                  <tr key={o.department}>
+                    <td style={{ textTransform: 'capitalize', fontWeight: 600 }}>
+                      {o.department}
+                    </td>
+                    <td className="mono">{o.waiting}</td>
+                    <td className="mono">{o.serving}</td>
+                    <td className="mono">{o.doneToday}</td>
+                    <td className="mono">{o.appts}</td>
+                    <td className="mono">{o.openReq}</td>
+                    <td className="mono">{o.openInq}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       <section className="stack">
-        <h2>Open requests &middot; {requestRows.length}</h2>
-        <div className="scroller">
-          <table>
-            <thead>
-              <tr><th>Reference</th><th>Service &amp; documents</th><th>Status</th><th>Update</th></tr>
-            </thead>
-            <tbody>
-              {requestRows.length === 0 && (
-                <tr><td colSpan={4} className="muted">No open requests.</td></tr>
-              )}
-              {requestRows.map((r) => <RequestRow key={r.id} row={r} />)}
-            </tbody>
-          </table>
+        <h2>Jump to</h2>
+        <div className="grid2">
+          <Link href={link('/staff/queue', ctx.isAdmin, ctx.scope)} className="card">
+            <h3>Call the next number</h3>
+            <p className="muted">
+              {total('waiting') === 0
+                ? 'Nobody is waiting right now.'
+                : `${total('waiting')} waiting across ${ctx.departments.length === 1 ? 'this office' : 'both offices'}.`}
+            </p>
+          </Link>
+          <Link href={link('/staff/requests', ctx.isAdmin, ctx.scope)} className="card">
+            <h3>Work through requests</h3>
+            <p className="muted">
+              {total('openReq') === 0 ? 'Nothing open.' : `${total('openReq')} still open.`}
+            </p>
+          </Link>
         </div>
       </section>
+    </div>
+  );
+}
 
-      <section className="stack">
-        <h2>Open inquiries &middot; {(inquiries ?? []).length}</h2>
-        {(inquiries ?? []).length === 0 && <p className="muted">No open inquiries.</p>}
-        {((inquiries ?? []) as InquiryRecord[]).map((i) => (
-          <InquiryRow key={i.id} row={i} />
-        ))}
-      </section>
-    </main>
+function link(href: string, isAdmin: boolean, scope: string) {
+  return isAdmin ? `${href}?dept=${scope}` : href;
+}
+
+function Tile({ label, value, hint }: Omit<Row, 'department'>) {
+  return (
+    <div className="tile">
+      <span className="label">{label}</span>
+      <span className="tile-value">{value}</span>
+      {hint && <span className="tile-hint">{hint}</span>}
+    </div>
   );
 }
