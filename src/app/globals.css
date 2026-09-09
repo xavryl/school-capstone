@@ -21,10 +21,13 @@
      fifth one. Under 9% alpha, so the ground stays flat enough that text on
      it measures 15.0:1 for ink and 7.1:1 for muted -- AAA for both, which
      the tinted gradient it replaced could not hold. */
+  /* The page sheet. Deliberately a shade below --surface so the cards on it
+     still read as raised rather than merging into one flat slab. */
+  --sheet: #eef2f7;
   --grid: rgba(21, 32, 47, .055);
   --grid-major: rgba(21, 32, 47, .085);
   --ink: #15202f;          /* 15.8:1 on surface */
-  --muted: #45536a;        /*  8.3:1 on surface */
+  --muted: #404d62;        /*  9.2:1 on a card, 7.6:1 on the sheet */
   --faint: #5a687e;        /*  6.1:1 on surface */
   --line: #ccd6e2;
   --line-soft: #e1e8f1;
@@ -53,6 +56,7 @@
     --ground: #0f141c;
     --surface: #1a2029;
     --sunk: #212a35;
+    --sheet: #151b24;
     --grid: rgba(238, 243, 250, .045);
     --grid-major: rgba(238, 243, 250, .075);
     --ink: #eef3fa;
@@ -84,6 +88,7 @@
   --ground: #0f141c;
   --surface: #1a2029;
   --sunk: #212a35;
+  --sheet: #151b24;
   --grid: rgba(238, 243, 250, .045);
   --grid-major: rgba(238, 243, 250, .075);
   --ink: #eef3fa;
@@ -143,7 +148,18 @@ body::before {
 /* Fainter behind the queue numbers on a wall screen. */
 body:has(.tv)::before { opacity: .5; }
 
-.wrap { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
+.wrap {
+  max-width: 64rem;
+  margin: 1.5rem auto 4rem;
+  padding: 2.25rem 2rem 3rem;
+  background: var(--sheet);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+}
+@media (max-width: 46rem) {
+  .wrap { margin: .8rem .7rem 3rem; padding: 1.5rem 1.1rem 2.5rem; border-radius: 12px; }
+}
 .narrow { max-width: 40rem; }
 
 /* ------------------------------------------------------------ typography -- */
