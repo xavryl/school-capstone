@@ -26,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
+        <div className="scroll-progress" aria-hidden="true" />
         <NavBar />
         <BackBar />
         {children}

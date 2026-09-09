@@ -137,14 +137,14 @@ body::before {
     radial-gradient(38vmax 38vmax at 20% 14%, var(--glow-a), transparent 62%),
     radial-gradient(34vmax 34vmax at 82% 30%, var(--glow-b), transparent 62%),
     radial-gradient(32vmax 32vmax at 48% 88%, var(--glow-c), transparent 64%);
-  animation: drift 54s ease-in-out infinite alternate;
+  animation: drift 26s ease-in-out infinite alternate;
   will-change: transform;
 }
 
 @keyframes drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  50%  { transform: translate3d(3vmax, -2.4vmax, 0) scale(1.07); }
-  100% { transform: translate3d(-2.4vmax, 3vmax, 0) scale(1.03); }
+  0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  50%  { transform: translate3d(7vmax, -5vmax, 0) scale(1.14) rotate(3deg); }
+  100% { transform: translate3d(-6vmax, 6vmax, 0) scale(1.06) rotate(-2deg); }
 }
 
 /* The lobby television runs this page for eight hours a day on a wall. Drifting
@@ -795,3 +795,106 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   font-size: .96rem; color: var(--muted); line-height: 1.5;
 }
 .ticklist svg { width: 1.05rem; height: 1.05rem; color: var(--good); flex: none; margin-top: .26rem; }
+
+/* ===========================================================================
+   Motion you can actually see. The load-time reveals fire once and are easy
+   to miss; these are tied to scroll and to hover, so the page keeps moving
+   while you use it. Everything is still switched off by prefers-reduced-motion.
+   =========================================================================== */
+
+/* --- scroll progress ---------------------------------------------------- */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70;
+  background: linear-gradient(90deg, var(--accent), var(--signal));
+  transform: scaleX(0); transform-origin: 0 50%; pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  .scroll-progress {
+    animation: fill-bar linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes fill-bar { to { transform: scaleX(1); } }
+body:has(.tv) .scroll-progress { display: none; }
+
+/* --- sections arrive as you scroll to them ------------------------------ */
+/* Falls back to the existing load-time reveal where view() is unsupported,
+   so content is never left parked invisible. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: rise-scroll linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 26%;
+      animation-delay: 0s;
+    }
+  }
+}
+@keyframes rise-scroll {
+  from { opacity: 0; transform: translateY(34px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- cards lift properly ------------------------------------------------ */
+.card { transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s ease, border-color .18s ease; }
+a.card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
+.aside-card { transition: transform .22s cubic-bezier(.2,.9,.3,1), border-color .18s ease; }
+.aside-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+/* --- a light sweeps across a primary button on hover -------------------- */
+button, .btn { position: relative; overflow: hidden; }
+button::after, .btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
+  transform: translateX(-120%); pointer-events: none;
+}
+button:hover::after, .btn:hover::after { animation: sweep .7s ease-out; }
+@keyframes sweep { to { transform: translateX(120%); } }
+button.ghost::after, .btn.ghost::after { opacity: .45; }
+
+/* --- the primary call to action breathes until it is used --------------- */
+.picker-cta { animation: breathe 3.4s ease-in-out 6; }
+@keyframes breathe {
+  0%, 100% { box-shadow: var(--shadow); }
+  50%      { box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 14%, transparent); }
+}
+.picker:hover .picker-cta, .picker-cta[aria-expanded="true"] { animation: none; }
+
+/* --- lists arrive item by item ------------------------------------------ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .steps li, .ticklist li, .bubble-grid > * {
+      animation: slip .5s cubic-bezier(.2,.9,.3,1) both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 20%;
+    }
+  }
+}
+@keyframes slip {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: none; }
+}
+.steps li:hover .step-n { transform: scale(1.12) rotate(-6deg); }
+.step-n { transition: transform .25s cubic-bezier(.2,.9,.3,1); }
+
+/* --- the raised track box floats gently --------------------------------- */
+.track-box { animation: bob 7s ease-in-out infinite alternate; }
+@keyframes bob {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-7px); }
+}
+.track-box:hover { animation-play-state: paused; }
+
+/* --- inputs glow as you focus them -------------------------------------- */
+input, textarea, select { transition: border-color .18s ease, box-shadow .18s ease; }
+input:focus, textarea:focus, select:focus {
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* --- the help button nudges once the page settles ----------------------- */
+.faq-fab { animation: fab-in .5s cubic-bezier(.2,1.2,.4,1) both .8s; }
+@keyframes fab-in {
+  from { opacity: 0; transform: scale(.4) translateY(18px); }
+  to   { opacity: 1; transform: none; }
+}
+.faq-fab:hover { transform: scale(1.08) rotate(6deg); transition: transform .22s cubic-bezier(.2,.9,.3,1); }
