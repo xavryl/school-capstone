@@ -16,16 +16,21 @@ region closest to you.
 
 ### 2. Run the migrations
 
-Open **SQL Editor** in the Supabase dashboard and run these four files in order.
+Open **SQL Editor** in the Supabase dashboard and run these six files in order.
 Order matters — later files reference earlier ones.
 
 | File | What it creates |
 |---|---|
-| `supabase/migrations/0001_schema.sql` | Tables, enums, and the appointment exclusion constraint |
-| `supabase/migrations/0002_functions.sql` | Queue numbering, guest inquiry, tracking, status transitions |
-| `supabase/migrations/0003_rls.sql` | Row level security policies on every table |
-| `supabase/migrations/0004_seed.sql` | The nine services and four windows from the proposal |
-| `supabase/migrations/0005_appointments_reports.sql` | Slot generation, booking, inquiry workflow, report queries |
+| `0001_schema.sql` | Tables, enums, and the appointment exclusion constraint |
+| `0002_functions.sql` | Queue numbering, guest inquiry, tracking, status transitions |
+| `0003_rls.sql` | Row level security policies on every table |
+| `0004_seed.sql` | The nine services and four windows from the proposal |
+| `0005_appointments_reports.sql` | Slot generation, booking, inquiry workflow, report queries |
+| `0006_attachments_kiosk_announcements.sql` | Document storage, queue issuance, announcements, reminders |
+
+The last file also contains the two `pg_cron` schedules — appointment reminders
+and the keep-alive — commented out at the bottom. Uncomment and run them once
+your project is live.
 
 ### 3. Configure the environment
 
@@ -69,14 +74,16 @@ Reload `/staff` and the console appears.
 |---|---|---|
 | `/` | Anyone | Landing, department selection |
 | `/login` | Students, staff | Sign in and sign up |
-| `/request` | Students | File a transaction request |
+| `/request` | Students | File a request, attaching supporting documents |
+| `/queue` | Students | Take a queue number and watch your position live |
 | `/appointments` | Students | Book a half-hour window slot, cancel bookings |
 | `/inquiry` | Guests | Send an inquiry without an account |
 | `/track`, `/track/[reference]` | Anyone with a reference | Status and history |
+| `/profile` | Signed-in users | Name, student number, secure sign-out |
 | `/notifications` | Signed-in users | Every status change, with an unread badge in the nav |
 | `/display/registrar`, `/display/treasury` | Lobby TV | Full-screen queue display |
-| `/staff` | Registrar/treasury staff | Queue console, today's appointments, requests, inquiry replies |
-| `/staff/reports` | Staff | Summary tiles, daily chart, CSV export |
+| `/staff` | Registrar/treasury staff | Queue console, walk-in tickets, announcements, appointments, requests, inquiry replies |
+| `/staff/reports` | Staff | Summary tiles, daily chart, CSV export; admins switch department |
 
 Open a display route full-screen (F11) on the television. It needs no sign-in.
 
@@ -138,20 +145,30 @@ request gets its own preview URL.
 
 ## Still open
 
-Everything in the proposal is built. What remains is either a judgement call or
-needs credentials:
+Every function in the proposal is implemented. Three things remain, and none of
+them blocks a demo:
 
-1. **Appointment reminders.** `pg_cron` is the place for it — schedule a job
-   that reads tomorrow's bookings and inserts notification rows. Vercel's free
-   cron is capped at two once-daily jobs, which is why this belongs in Supabase.
-2. **SMS.** Not free from any provider, so the notification matrix is in-app and
+1. **SMS.** Not free from any provider, so the notification matrix is in-app and
    email only. Roughly ₱500 of Semaphore credits buys about a thousand messages
-   if you want it working for the demo; it slots in as one more channel inside
-   `src/lib/email.ts`'s sibling.
-3. **Walk-in kiosk page.** `issue_queue_ticket()` exists and works; there is no
-   dedicated touch screen for the lobby yet. Staff can issue tickets from the
-   console.
-4. **Admin service editor.** Services and windows are seeded by SQL and the RLS
-   policies already allow admins to change them; there is no form for it.
+   if you want it working for the defense; it slots in beside `sendMail()` in
+   `src/lib/email.ts` as one more channel behind the same call.
+2. **Admin editor for services and windows.** Both are seeded by SQL, and the
+   RLS policies already permit an admin to change them — there is no form yet,
+   so office hours and window counts are edited in the SQL editor.
+3. **Blocking out individual appointment slots.** Slots are generated from
+   active windows and fixed office hours in `available_slots()`. Closing a
+   window for an afternoon means deactivating it, not blanking one slot.
 
-The system runs without any of these.
+## Notes on a few design choices
+
+**Documents upload from the browser, not through the server.** `RequestForm`
+sends files straight to Supabase Storage with the anon key. Routing them
+through a Server Action would spend Vercel function time on bytes that never
+need to reach our server, and would hit the request body limit.
+
+**Signed URLs are minted on click.** A staff console listing fifty requests
+would otherwise generate hundreds of URLs nobody opens.
+
+**Queue tickets carry their own `student_id`.** Deriving the owner by joining
+through `requests` would lose every walk-in number — and most numbers are
+walk-ins, since taking one does not require having filed a request.

@@ -125,6 +125,13 @@ export default function DisplayClient({
         </aside>
       </div>
 
+      {snap?.announcement && (
+        <div className="tv-banner">
+          <span className="eyebrow">Notice</span>
+          <span>{snap.announcement}</span>
+        </div>
+      )}
+
       <div className="tv-foot">
         <span className={`dot ${health}`} />
         <span>

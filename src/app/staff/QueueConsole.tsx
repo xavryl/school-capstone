@@ -1,25 +1,46 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { callNext, setTicketState } from './actions';
-import type { Department, QueueTicket, ServiceWindow } from '@/lib/types';
+import {
+  callNext,
+  setTicketState,
+  issueWalkInTicket,
+  postAnnouncement,
+} from './actions';
+import type { Department, QueueTicket, Service, ServiceWindow } from '@/lib/types';
 
 export default function QueueConsole({
-  dept, windows, tickets,
-}: { dept: Department; windows: ServiceWindow[]; tickets: QueueTicket[] }) {
+  dept,
+  windows,
+  tickets,
+  services,
+  announcement,
+}: {
+  dept: Department;
+  windows: ServiceWindow[];
+  tickets: QueueTicket[];
+  services: Service[];
+  announcement: string;
+}) {
   const [windowId, setWindowId] = useState<number | undefined>(windows[0]?.id);
+  const [walkInService, setWalkInService] = useState<string>('');
+  const [banner, setBanner] = useState(announcement);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'bad'; text: string } | null>(null);
   const [pending, start] = useTransition();
 
   const serving = tickets.filter((t) => t.state === 'serving');
   const waiting = tickets.filter((t) => t.state === 'waiting');
   const skipped = tickets.filter((t) => t.state === 'skipped');
-  const label = (id: number | null) => windows.find((w) => w.id === id)?.label ?? '\u2014';
+  const label = (id: number | null) => windows.find((w) => w.id === id)?.label ?? '—';
 
-  function run(fn: () => Promise<{ error?: string; ok?: unknown }>) {
+  function run(fn: () => Promise<{ error?: string; ok?: unknown }>, okText = 'Done.') {
     start(async () => {
       const r = await fn();
-      setMsg(r.error ? { kind: 'bad', text: r.error } : { kind: 'ok', text: 'Done.' });
+      setMsg(
+        r.error
+          ? { kind: 'bad', text: r.error }
+          : { kind: 'ok', text: typeof r.ok === 'string' ? `Issued ${r.ok}.` : okText },
+      );
     });
   }
 
@@ -41,7 +62,7 @@ export default function QueueConsole({
             onClick={() => windowId && run(() => callNext(dept, windowId))}
             style={{ alignSelf: 'end' }}
           >
-            {pending ? 'Calling...' : 'Call next'}
+            {pending ? 'Working…' : 'Call next'}
           </button>
         </div>
         {msg && <p className={`notice ${msg.kind === 'bad' ? 'bad' : 'good'}`}>{msg.text}</p>}
@@ -49,6 +70,56 @@ export default function QueueConsole({
           Calling completes whoever was at your window, promotes the oldest waiting ticket,
           and announces it on the lobby screen.
         </p>
+      </div>
+
+      <div className="card stack">
+        <span className="label">Walk-in without an account</span>
+        <div className="row" style={{ alignItems: 'flex-end' }}>
+          <label className="field" style={{ minWidth: '14rem' }}>
+            <span className="label">Service</span>
+            <select value={walkInService} onChange={(e) => setWalkInService(e.target.value)}>
+              <option value="">Unspecified</option>
+              {services.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </label>
+          <button
+            className="ghost"
+            disabled={pending}
+            onClick={() =>
+              run(() => issueWalkInTicket(dept, walkInService ? Number(walkInService) : null))
+            }
+          >
+            Issue a number
+          </button>
+        </div>
+      </div>
+
+      <div className="card stack">
+        <span className="label">Lobby screen announcement</span>
+        <input
+          value={banner}
+          onChange={(e) => setBanner(e.target.value)}
+          placeholder="e.g. Treasury closes at 3:00 PM today."
+        />
+        <div className="row">
+          <button
+            className="ghost"
+            disabled={pending}
+            onClick={() => run(() => postAnnouncement(dept, banner), 'Announcement updated.')}
+          >
+            Post to screen
+          </button>
+          <button
+            className="ghost"
+            disabled={pending || banner === ''}
+            onClick={() => {
+              setBanner('');
+              run(() => postAnnouncement(dept, ''), 'Announcement cleared.');
+            }}
+          >
+            Clear
+          </button>
+        </div>
       </div>
 
       <div className="card stack">
@@ -79,9 +150,7 @@ export default function QueueConsole({
           <span className="label">Waiting &middot; {waiting.length}</span>
           {waiting.length === 0
             ? <p className="muted">Queue is empty.</p>
-            : waiting.map((t) => (
-                <span key={t.id} className="mono">{t.number}</span>
-              ))}
+            : waiting.map((t) => <span key={t.id} className="mono">{t.number}</span>)}
         </div>
         <div className="card stack">
           <span className="label">Skipped &middot; {skipped.length}</span>

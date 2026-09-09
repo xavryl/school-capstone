@@ -1,38 +1,118 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useState } from 'react';
-import { submitRequest } from './actions';
+import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { DEPARTMENTS, type Department, type Service } from '@/lib/types';
 
+const MAX_BYTES = 10 * 1024 * 1024;
+
 export default function RequestForm({
-  services, initialDept, email,
-}: { services: Service[]; initialDept: Department; email: string }) {
+  services,
+  initialDept,
+  email,
+  userId,
+}: {
+  services: Service[];
+  initialDept: Department;
+  email: string;
+  userId: string;
+}) {
   const [dept, setDept] = useState<Department>(initialDept);
-  const [state, action, pending] = useActionState(submitRequest, null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ reference: string; attached: number } | null>(null);
 
   const visible = services.filter((s) => s.department === dept && s.active);
 
-  if (state?.reference) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+
+    const fd = new FormData(e.currentTarget);
+    const oversized = files.find((f) => f.size > MAX_BYTES);
+    if (oversized) {
+      setError(`${oversized.name} is larger than 10 MB. Please attach a smaller scan.`);
+      return;
+    }
+
+    const supabase = createClient();
+    setBusy('Filing your request…');
+
+    const { data, error: rpcError } = await supabase.rpc('submit_request', {
+      dept,
+      p_service: Number(fd.get('service_id')),
+      p_details: String(fd.get('details') ?? ''),
+      p_email: String(fd.get('email') ?? ''),
+      p_phone: String(fd.get('phone') ?? '') || null,
+      p_when: String(fd.get('preferred_at') ?? '') || null,
+    });
+
+    if (rpcError || !data) {
+      setBusy('');
+      setError(rpcError?.message ?? 'Could not file the request.');
+      return;
+    }
+
+    const req = data as { id: string; reference: string };
+    let attached = 0;
+
+    // Files go straight from the browser to Supabase Storage. Routing them
+    // through a Server Action would spend Vercel function time on bytes that
+    // never need to touch our server, and would run into the body size limit.
+    for (const [i, file] of files.entries()) {
+      setBusy(`Uploading ${i + 1} of ${files.length}…`);
+      const path = `${userId}/${req.id}/${file.name}`;
+
+      const { error: upErr } = await supabase.storage
+        .from('attachments')
+        .upload(path, file, { upsert: true });
+
+      if (upErr) {
+        setError(
+          `Request ${req.reference} was filed, but ${file.name} failed to upload: ${upErr.message}`,
+        );
+        continue;
+      }
+
+      const { error: linkErr } = await supabase.rpc('attach_to_request', {
+        p_request: req.id,
+        p_path: path,
+        p_name: file.name,
+        p_size: file.size,
+      });
+      if (!linkErr) attached += 1;
+    }
+
+    setBusy('');
+    setDone({ reference: req.reference, attached });
+  }
+
+  if (done) {
     return (
       <div className="card stack">
         <span className="label">Request filed</span>
         <p className="mono" style={{ fontSize: '1.6rem', letterSpacing: '.04em' }}>
-          {state.reference}
+          {done.reference}
         </p>
         <p className="muted">
-          Keep this reference. You will also see the request under your account, and we will
-          email you at each status change.
+          Keep this reference.{' '}
+          {done.attached > 0
+            ? `${done.attached} document${done.attached === 1 ? '' : 's'} attached. `
+            : ''}
+          You will be emailed at each status change.
         </p>
         <div className="row">
-          <Link className="btn" href={`/track/${state.reference}`}>Track it</Link>
+          <Link className="btn" href={`/track/${done.reference}`}>Track it</Link>
+          <Link className="btn ghost" href={`/queue?dept=${dept}`}>Get a queue number</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <form action={action} className="card stack">
+    <form onSubmit={onSubmit} className="card stack">
       <label className="field">
         <span className="label">Department</span>
         <select
@@ -61,6 +141,29 @@ export default function RequestForm({
       </label>
 
       <label className="field">
+        <span className="label">Supporting documents (optional)</span>
+        <input
+          type="file"
+          multiple
+          accept="image/*,application/pdf"
+          onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+        />
+        <span className="muted" style={{ fontSize: '.82rem' }}>
+          Photos or PDFs &mdash; a valid ID, an authorisation letter, a receipt. 10 MB each.
+        </span>
+        {files.length > 0 && (
+          <ul className="filelist">
+            {files.map((f) => (
+              <li key={f.name}>
+                <span className="mono">{f.name}</span>
+                <span className="muted"> &middot; {(f.size / 1024).toFixed(0)} KB</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </label>
+
+      <label className="field">
         <span className="label">Preferred date and time (optional)</span>
         <input name="preferred_at" type="datetime-local" />
       </label>
@@ -76,9 +179,11 @@ export default function RequestForm({
         </label>
       </div>
 
-      {state?.error && <p className="notice bad">{state.error}</p>}
+      {error && <p className="notice bad">{error}</p>}
+      {busy && <p className="notice">{busy}</p>}
+
       <div className="row">
-        <button disabled={pending}>{pending ? 'Filing...' : 'File request'}</button>
+        <button disabled={busy !== ''}>{busy ? 'Working…' : 'File request'}</button>
       </div>
     </form>
   );

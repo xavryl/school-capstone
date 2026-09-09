@@ -183,3 +183,22 @@ body:has(.tv) .topbar { display: none; }
   font-variant-numeric: tabular-nums;
 }
 .tile-hint { font-size: .78rem; color: var(--faint); font-family: var(--f-mono); }
+
+/* -------------------------------------------------- queue ticket & files -- */
+.ticket-number {
+  font-size: 3.4rem; font-weight: 700; letter-spacing: -.03em; line-height: 1;
+  font-variant-numeric: tabular-nums; color: var(--signal);
+}
+.filelist { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .2rem; font-size: .84rem; }
+button.attach {
+  padding: .2rem .5rem; font-size: .76rem; font-weight: 500;
+  font-family: var(--f-mono); border-style: dashed;
+}
+
+/* ------------------------------------------------------- TV announcement -- */
+.tv-banner {
+  display: flex; align-items: baseline; gap: 1.2vw;
+  border: 1px solid var(--signal); background: #2a2318;
+  border-radius: 6px; padding: 1.4vh 1.6vw; font-size: 1.8vw;
+}
+.tv-banner .eyebrow { font-size: 1vw; }

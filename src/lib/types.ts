@@ -61,5 +61,6 @@ export type QueueSnapshot = {
   department: Department;
   serving: { number: string; window: string; called_at: string }[];
   waiting: string[];
+  announcement: string | null;
   as_of: string;
 };

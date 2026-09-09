@@ -96,6 +96,34 @@ export async function setInquiryStatus(inquiryId: string, status: InquiryStatus)
   return { ok: true };
 }
 
+/** Counter-issued number for someone who walked in without an account. */
+export async function issueWalkInTicket(dept: Department, serviceId: number | null) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('issue_walkin_ticket', {
+    dept,
+    p_service: serviceId,
+  });
+  if (error) return { error: error.message };
+
+  await broadcastQueue(dept, { refresh: true });
+  revalidatePath('/staff');
+  return { ok: (data as { number: string }).number };
+}
+
+/** Posts a banner to the lobby screen. An empty message clears it. */
+export async function postAnnouncement(dept: Department, message: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('post_announcement', {
+    dept,
+    p_message: message,
+  });
+  if (error) return { error: error.message };
+
+  await broadcastQueue(dept, { refresh: true });
+  revalidatePath('/staff');
+  return { ok: true };
+}
+
 export async function setAppointmentStatus(id: string, status: 'attended' | 'cancelled') {
   const supabase = await createClient();
   const { error } = await supabase.rpc('set_appointment_status', {

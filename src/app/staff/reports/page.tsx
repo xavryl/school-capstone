@@ -5,7 +5,7 @@ import VolumeChart, { type DailyRow } from './VolumeChart';
 
 export const dynamic = 'force-dynamic';
 
-type Props = { searchParams: Promise<{ from?: string; to?: string }> };
+type Props = { searchParams: Promise<{ from?: string; to?: string; dept?: string }> };
 
 type Summary = {
   requests_total: number;
@@ -60,7 +60,13 @@ export default async function ReportsPage({ searchParams }: Props) {
     );
   }
 
-  const dept = me.department as Department;
+  // Both report functions accept any department for an admin, so the
+  // proposal's separate "registrar transactions" and "treasury transactions"
+  // reports are this one page with the selector below.
+  const canSwitch = Boolean(me.is_admin);
+  const requested = sp.dept === 'treasury' || sp.dept === 'registrar' ? sp.dept : null;
+  const dept: Department = (canSwitch && requested ? requested : me.department) as Department;
+
   const to = sp.to ?? iso(new Date());
   const from = sp.from ?? iso(new Date(Date.now() - 13 * 86_400_000));
 
@@ -76,7 +82,7 @@ export default async function ReportsPage({ searchParams }: Props) {
   }));
 
   const csv = (type: string) =>
-    `/staff/reports/export?type=${type}&from=${from}&to=${to}`;
+    `/staff/reports/export?type=${type}&from=${from}&to=${to}&dept=${dept}`;
 
   return (
     <main className="wrap stack-lg">
@@ -84,6 +90,15 @@ export default async function ReportsPage({ searchParams }: Props) {
         <span className="eyebrow" style={{ textTransform: 'uppercase' }}>{dept} reports</span>
         <h1>Transactions and queue statistics</h1>
         <form className="row" style={{ alignItems: 'flex-end' }}>
+          {canSwitch && (
+            <label className="field" style={{ maxWidth: '11rem' }}>
+              <span className="label">Department</span>
+              <select name="dept" defaultValue={dept}>
+                <option value="registrar">Registrar</option>
+                <option value="treasury">Treasury</option>
+              </select>
+            </label>
+          )}
           <label className="field" style={{ maxWidth: '11rem' }}>
             <span className="label">From</span>
             <input type="date" name="from" defaultValue={from} />

@@ -38,12 +38,14 @@ export default async function NavBar() {
     <nav className="topbar">
       <Link href="/" className="brand">One-Stop Services</Link>
       <Link href="/request">Request</Link>
+      <Link href="/queue">Queue</Link>
       <Link href="/appointments">Appointments</Link>
       <Link href="/inquiry">Guest inquiry</Link>
       <Link href="/track">Track</Link>
       <span className="spacer" />
       {email ? (
         <>
+          <Link href="/profile">Profile</Link>
           <Link href="/notifications">
             Updates{unread > 0 && <span className="badge">{unread}</span>}
           </Link>

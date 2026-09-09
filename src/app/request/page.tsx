@@ -32,6 +32,7 @@ export default async function RequestPage({ searchParams }: Props) {
           services={(services ?? []) as Service[]}
           initialDept={initialDept}
           email={user.email ?? ''}
+          userId={user.id}
         />
       ) : (
         <div className="card stack">

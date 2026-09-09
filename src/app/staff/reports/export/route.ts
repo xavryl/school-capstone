@@ -11,21 +11,25 @@ const QUERIES = {
     table: 'requests',
     columns: 'reference, status, details, contact_email, created_at, updated_at',
     dateColumn: 'created_at',
+    deptColumn: 'department',
   },
   appointments: {
     table: 'appointments',
     columns: 'id, starts_at, ends_at, status, created_at',
     dateColumn: 'starts_at',
+    deptColumn: null,
   },
   tickets: {
     table: 'queue_tickets',
     columns: 'number, state, service_date, created_at, called_at, completed_at',
     dateColumn: 'created_at',
+    deptColumn: 'department',
   },
   inquiries: {
     table: 'inquiries',
     columns: 'reference, name, email, subject, status, created_at, responded_at',
     dateColumn: 'created_at',
+    deptColumn: 'department',
   },
 } as const;
 
@@ -64,6 +68,14 @@ export async function GET(request: NextRequest) {
   let query = supabase.from(spec.table).select(spec.columns);
   if (from) query = query.gte(spec.dateColumn, from);
   if (to) query = query.lte(spec.dateColumn, `${to}T23:59:59`);
+
+  // RLS scopes an ordinary staff account to its own department already, but
+  // an administrator can read both -- so an explicit filter is what keeps the
+  // registrar and treasury exports separate rather than merged.
+  const dept = params.get('dept');
+  if (spec.deptColumn && (dept === 'registrar' || dept === 'treasury')) {
+    query = query.eq(spec.deptColumn, dept);
+  }
 
   const { data, error } = await query.order(spec.dateColumn);
   if (error) {
