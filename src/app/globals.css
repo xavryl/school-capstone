@@ -16,10 +16,16 @@
      glare; two points off it costs no measurable contrast and reads softer. */
   --surface: #fcfdff;
   --sunk: #eaeff6;
-  --bg: linear-gradient(168deg, #eef3fa 0%, #f6f4f0 52%, #edf1f8 100%);
-  --glow-a: rgba(104, 150, 214, .22);
-  --glow-b: rgba(226, 176, 112, .16);
-  --glow-c: rgba(126, 196, 186, .16);
+  --bg: linear-gradient(168deg, #e9f0fa 0%, #f6f2ea 52%, #e8eef8 100%);
+  /* Carried further than the dark values on purpose: the same alpha over a
+     light ground barely shifts it, so the bands washed out to nothing here.
+     Measured at seven points across the tinted ground, ink lands 12.3-14.5:1
+     and muted 5.8-6.9:1 -- clear of AA, and muted gives up the AAA it holds
+     on a card. That is the price of a visible band, and body text on the
+     ground is only the hero lede. */
+  --glow-a: rgba(86, 138, 212, .38);
+  --glow-b: rgba(230, 164, 86, .30);
+  --glow-c: rgba(90, 190, 178, .30);
   --ink: #15202f;          /* 15.8:1 on surface */
   --muted: #45536a;        /*  8.3:1 on surface */
   --faint: #5a687e;        /*  6.1:1 on surface */
