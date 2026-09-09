@@ -603,3 +603,72 @@ button:active:not(:disabled), .btn:active { transform: scale(.985); }
 /* Two floating things must not compete for the same corner: while the office
    bubble is open, the help button steps out of the way. */
 body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
+
+/* ===========================================================================
+   Navbar motion. Every transform here is on the bar's own furniture, never on
+   the page under it, so nothing reflows while you read.
+   =========================================================================== */
+
+.nav { transition: box-shadow .25s ease, background .25s ease; }
+.nav.scrolled { box-shadow: 0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* Brand mark tips as you reach for it. */
+.brand-mark { transition: transform .3s cubic-bezier(.2, .9, .3, 1); }
+.brand:hover .brand-mark { transform: rotate(-7deg) scale(1.07); }
+.brand:active .brand-mark { transform: rotate(-7deg) scale(.98); }
+
+/* Hover underline that grows from the centre. The active link keeps its
+   filled pill, so the two states never look like each other. */
+.nav-link::after {
+  content: ''; position: absolute; left: .75rem; right: .75rem; bottom: .3rem;
+  height: 2px; border-radius: 2px; background: currentColor;
+  transform: scaleX(0); transform-origin: center;
+  transition: transform .24s cubic-bezier(.2, .9, .3, 1);
+}
+.nav-link.active::after { display: none; }
+.nav-link:hover::after { transform: scaleX(1); }
+
+/* Hamburger: three bars that rotate into the X. */
+.ham-box { position: relative; display: block; width: 1.4rem; height: 1.05rem; }
+.ham-box span {
+  position: absolute; left: 0; width: 100%; height: 2.5px; border-radius: 2px;
+  background: currentColor;
+  transition: transform .3s cubic-bezier(.2, .9, .3, 1), opacity .16s ease, top .3s cubic-bezier(.2, .9, .3, 1);
+}
+.ham-box span:nth-child(1) { top: 0; }
+.ham-box span:nth-child(2) { top: 50%; margin-top: -1.25px; }
+.ham-box span:nth-child(3) { top: calc(100% - 2.5px); }
+.hamburger.open .ham-box span:nth-child(1) { top: 50%; margin-top: -1.25px; transform: rotate(45deg); }
+.hamburger.open .ham-box span:nth-child(2) { opacity: 0; transform: scaleX(.3); }
+.hamburger.open .ham-box span:nth-child(3) { top: 50%; margin-top: -1.25px; transform: rotate(-45deg); }
+.hamburger { transition: border-color .15s ease, color .15s ease; }
+.hamburger:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Panel items arrive one after another rather than all at once. */
+.nav-links.open > * { animation: drop .3s cubic-bezier(.2, .9, .3, 1) both; }
+.nav-links.open > *:nth-child(1) { animation-delay: .02s; }
+.nav-links.open > *:nth-child(2) { animation-delay: .05s; }
+.nav-links.open > *:nth-child(3) { animation-delay: .08s; }
+.nav-links.open > *:nth-child(4) { animation-delay: .11s; }
+.nav-links.open > *:nth-child(5) { animation-delay: .14s; }
+.nav-links.open > *:nth-child(6) { animation-delay: .17s; }
+.nav-links.open > *:nth-child(7) { animation-delay: .20s; }
+.nav-links.open > *:nth-child(8) { animation-delay: .23s; }
+
+/* The sun and moon are keyed in React, so each one mounts fresh and spins in. */
+@keyframes icon-in {
+  from { opacity: 0; transform: rotate(-100deg) scale(.5); }
+  to   { opacity: 1; transform: none; }
+}
+.theme-toggle svg { animation: icon-in .34s cubic-bezier(.2, .9, .3, 1) both; }
+.theme-toggle { transition: border-color .15s ease, color .15s ease; }
+
+/* Avatar swells slightly; the unread badge asks for attention three times
+   and then stops, rather than blinking at you all session. */
+.avatar { transition: transform .2s cubic-bezier(.2, .9, .3, 1), border-color .15s ease; }
+.avatar:hover { transform: scale(1.07); }
+@keyframes badge-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  45%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bad) 32%, transparent); }
+}
+.badge { animation: badge-pulse 2.2s ease-out 3; }

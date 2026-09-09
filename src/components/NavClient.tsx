@@ -26,16 +26,26 @@ const PUBLIC_LINKS = [
 export default function NavClient({ email, unread, isStaff, avatarUrl, fullName }: NavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // A tapped link on a phone navigates without unmounting the nav, so the
   // panel would otherwise stay open over the page you just asked for.
   useEffect(() => setOpen(false), [pathname]);
 
+  // Lift the bar off the page once it is actually overlapping content, so it
+  // reads as floating rather than as part of the page header.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
-    <nav className="nav">
+    <nav className={`nav${scrolled ? ' scrolled' : ''}`}>
       <div className="nav-inner">
         <Link href="/" className="brand" aria-label="One-Stop Services, home">
           <span className="brand-mark" aria-hidden="true">1‑S</span>
@@ -45,28 +55,20 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
           </span>
         </Link>
 
+        {/* Three bars rather than two swapped icons, so they can rotate into
+            the X instead of cutting to it. */}
         <button
-          className="hamburger"
+          className={`hamburger${open ? ' open' : ''}`}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
           aria-controls="nav-links"
           onClick={() => setOpen((v) => !v)}
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-               strokeLinecap="round" aria-hidden="true">
-            {open ? (
-              <>
-                <line x1="6" y1="6" x2="18" y2="18" />
-                <line x1="18" y1="6" x2="6" y2="18" />
-              </>
-            ) : (
-              <>
-                <line x1="3" y1="7" x2="21" y2="7" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="17" x2="21" y2="17" />
-              </>
-            )}
-          </svg>
+          <span className="ham-box" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
         </button>
 
         <div className={`nav-links${open ? ' open' : ''}`} id="nav-links">
