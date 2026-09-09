@@ -124,8 +124,26 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The wave layer is drawn as an SVG in the layout so its bands can use the
-   theme tokens directly. Nothing here moves. */
+/* Wave bands, in CSS. Wide flat ellipses -- a radial-gradient whose
+   horizontal radius far exceeds its vertical one -- read as a curved band
+   rather than a circle, which is what gives the sweep without any SVG.
+   Fixed, so it is one composited layer however long the page is, and
+   pointer-events: none so it can never intercept a tap. Nothing moves. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(155% 52% at 50% -12%, var(--glow-a) 0%, transparent 62%),
+    radial-gradient(135% 42% at 12% 42%, var(--glow-c) 0%, transparent 64%),
+    radial-gradient(145% 48% at 88% 74%, var(--glow-b) 0%, transparent 62%),
+    radial-gradient(125% 38% at 38% 112%, var(--glow-a) 0%, transparent 60%);
+}
+
+/* Softer behind the queue numbers on a wall screen. */
+body:has(.tv)::before { opacity: .45; }
 
 .wrap { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
 .narrow { max-width: 40rem; }
@@ -752,11 +770,3 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 .ticklist svg { width: 1.05rem; height: 1.05rem; color: var(--good); flex: none; margin-top: .26rem; }
 
-/* ------------------------------------------------------------- wave layer -- */
-.waves {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  overflow: hidden;
-}
-.waves svg { width: 100%; height: 100%; display: block; }
-/* Softer behind the queue numbers on a wall screen. */
-body:has(.tv) .waves { opacity: .45; }
