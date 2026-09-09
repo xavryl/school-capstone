@@ -1,59 +1,76 @@
 import Link from 'next/link';
-import { DEPARTMENTS } from '@/lib/types';
+import DepartmentPicker from '@/components/DepartmentPicker';
 
 export default function Home() {
   return (
     <main className="wrap stack-lg">
-      <header className="stack">
+      <header className="hero reveal" style={{ '--d': '0ms' } as React.CSSProperties}>
         <span className="eyebrow">Registrar &middot; Treasury</span>
-        <h1>File a request without queueing twice.</h1>
-        <p className="lede narrow">
-          Submit your transaction online, book a window, and track it to release.
-          Walk-ins and guests are handled here too.
+        <h1 className="hero-title">Need a transaction?</h1>
+        <p className="lede">
+          Tell us which office you need and we will take it from there — file it online,
+          book a time, or just take a number.
         </p>
+        <DepartmentPicker />
       </header>
 
-      <section className="stack">
-        <h2>Departments</h2>
-        <div className="grid2">
-          {DEPARTMENTS.map((d) => (
-            <Link key={d.id} href={`/request?dept=${d.id}`} className="card">
-              <span className="label">{d.id === 'registrar' ? 'Office 01' : 'Office 02'}</span>
-              <h3>{d.name}</h3>
-              <p className="muted">{d.blurb}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="stack">
+      <section className="stack reveal" style={{ '--d': '90ms' } as React.CSSProperties}>
         <h2>Other ways in</h2>
         <div className="grid2">
           <Link href="/inquiry" className="card">
             <h3>I am not a student or employee</h3>
             <p className="muted">
-              Send an inquiry without an account. You will get a reference number to track the reply.
+              Send an inquiry without an account. You will get a reference number to
+              track the reply.
             </p>
           </Link>
           <Link href="/track" className="card">
             <h3>I already have a reference</h3>
             <p className="muted">
-              Check where a request or inquiry has reached, from submitted through to release.
+              Check where a request or inquiry has reached, from submitted through
+              to release.
             </p>
           </Link>
         </div>
       </section>
 
-      <section className="stack">
+      <section className="stack reveal" style={{ '--d': '180ms' } as React.CSSProperties}>
+        <h2>How it works</h2>
+        <ol className="steps">
+          <li>
+            <span className="step-n" aria-hidden="true">1</span>
+            <div>
+              <strong>Tell us what you need</strong>
+              <p className="muted">Pick the office and the service. Attach a photo of your ID if someone else will collect it.</p>
+            </div>
+          </li>
+          <li>
+            <span className="step-n" aria-hidden="true">2</span>
+            <div>
+              <strong>We keep you posted</strong>
+              <p className="muted">Every change is emailed to you and shown under Updates. No need to keep calling.</p>
+            </div>
+          </li>
+          <li>
+            <span className="step-n" aria-hidden="true">3</span>
+            <div>
+              <strong>Collect it</strong>
+              <p className="muted">Come in when it says Ready for pickup. Take a queue number at the door and watch the screen.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section className="stack reveal" style={{ '--d': '270ms' } as React.CSSProperties}>
         <h2>Lobby displays</h2>
+        <p className="muted">
+          Open one of these full-screen on the television in the lobby. It reconnects on
+          its own and keeps showing the last called number if the connection drops.
+        </p>
         <div className="row">
           <Link href="/display/registrar" className="btn ghost">Registrar queue screen</Link>
           <Link href="/display/treasury" className="btn ghost">Treasury queue screen</Link>
         </div>
-        <p className="muted" style={{ fontSize: '.9rem' }}>
-          Open one of these full-screen on the television in the lobby. It reconnects on its own
-          and keeps showing the last called number if the connection drops.
-        </p>
       </section>
     </main>
   );
