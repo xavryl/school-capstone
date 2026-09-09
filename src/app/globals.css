@@ -784,3 +784,32 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 .ticklist svg { width: 1.05rem; height: 1.05rem; color: var(--good); flex: none; margin-top: .26rem; }
 
+
+/* ---------------------------------------------------- sign-in panels -- */
+/* The three panels slide in the direction you are travelling: forward when
+   going from sign in to create or reset, backward on the way home. Keyed in
+   React so the animation replays on every switch. */
+.auth-panel { display: flex; flex-direction: column; gap: 1.6rem; }
+.auth-panel.from-right { animation: slide-from-right .34s cubic-bezier(.22, .9, .3, 1) both; }
+.auth-panel.from-left  { animation: slide-from-left  .34s cubic-bezier(.22, .9, .3, 1) both; }
+
+@keyframes slide-from-right {
+  from { opacity: 0; transform: translateX(34px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slide-from-left {
+  from { opacity: 0; transform: translateX(-34px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* A link that happens to be a button: small, underlined, unmistakably
+   clickable, and not competing with the two real buttons beside it. */
+.textlink {
+  background: none; border: 0; padding: .25rem 0; min-height: 0;
+  color: var(--accent); font-size: .95rem; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.textlink:hover { color: var(--accent-ink); filter: none; text-decoration-thickness: 2px; }
+.textlink::after { content: none; }
+
+.field-aside { display: flex; justify-content: flex-end; margin-top: -.35rem; }
