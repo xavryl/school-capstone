@@ -514,7 +514,14 @@ body:has(.tv) .faq-panel { display: none; }
 /* The .reveal animation animates transform, which makes every section its
    own stacking context. Without this the bubble paints behind the sections
    that follow it in the document. */
-.hero { display: flex; flex-direction: column; gap: 1.1rem; padding: 1.5rem 0 .5rem; position: relative; z-index: 20; }
+.hero {
+  display: grid; grid-template-columns: 1fr; gap: 1.6rem; align-items: start;
+  padding: 1.5rem 0 .5rem; position: relative; z-index: 20;
+}
+@media (min-width: 62rem) {
+  .hero { grid-template-columns: minmax(0, 1.5fr) minmax(19rem, .8fr); gap: 2.5rem; }
+}
+.hero-main { display: flex; flex-direction: column; gap: 1.1rem; min-width: 0; }
 .hero-title {
   font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 800;
   letter-spacing: -.03em; line-height: 1.05; margin: 0;
@@ -702,11 +709,18 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 
 /* --------------------------------------------------- track on the front -- */
-.track-card { border-color: var(--accent); border-width: 2px; }
-.track-inline {
-  display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap;
+.track-box {
+  background: var(--surface); border: 2px solid var(--accent); border-radius: 12px;
+  padding: 1.2rem 1.25rem; display: flex; flex-direction: column; gap: .75rem;
+  box-shadow: var(--shadow-lg);
 }
+.track-box h2 { font-size: 1.15rem; }
+.track-inline { display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap; }
 .track-inline button { flex: 0 0 auto; }
+/* Inside the narrow hero column the field and button stack. */
+.track-box .track-inline { flex-direction: column; align-items: stretch; gap: .6rem; }
+.track-box .track-inline label { flex: 1 1 auto !important; }
+.track-box .track-inline button { width: 100%; }
 
 /* ------------------------------------------------- content + guidance -- */
 .page-grid {
