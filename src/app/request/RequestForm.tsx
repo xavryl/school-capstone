@@ -12,11 +12,15 @@ export default function RequestForm({
   initialDept,
   email,
   userId,
+  initialService = '',
+  initialDetails = '',
 }: {
   services: Service[];
   initialDept: Department;
   email: string;
   userId: string;
+  initialService?: string;
+  initialDetails?: string;
 }) {
   const [dept, setDept] = useState<Department>(initialDept);
   const [files, setFiles] = useState<File[]>([]);
@@ -136,7 +140,7 @@ export default function RequestForm({
       ) : (
         <label className="field">
           <span className="label">Service</span>
-          <select name="service_id" required>
+          <select name="service_id" required defaultValue={initialService}>
             {visible.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </label>
@@ -147,6 +151,7 @@ export default function RequestForm({
         <textarea
           name="details"
           required
+          defaultValue={initialDetails}
           placeholder="Purpose, number of copies, name on the record, and anything the office should know."
         />
       </label>
