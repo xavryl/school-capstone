@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const TITLES: Record<string, string> = {
+  '/display': 'Lobby screen',
   '/request': 'File a request',
   '/queue': 'Queue number',
   '/appointments': 'Appointments',
@@ -28,9 +29,10 @@ export default function BackBar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // The home page has nowhere to go back to, and the lobby television has no
-  // navigation at all.
-  if (pathname === '/' || pathname.startsWith('/display')) return null;
+  // The home page has nowhere to go back to, and the television screens
+  // themselves carry no navigation. The /display chooser is an ordinary page
+  // and keeps its bar.
+  if (pathname === '/' || pathname.startsWith('/display/')) return null;
 
   return (
     <div className="backbar">

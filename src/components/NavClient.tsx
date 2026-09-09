@@ -24,6 +24,7 @@ const PUBLIC_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/inquiry', label: 'Guest inquiry' },
   { href: '/track', label: 'Track' },
+  { href: '/display', label: 'Lobby screen' },
 ];
 
 export default function NavClient({ email, unread, isStaff, avatarUrl, fullName }: NavProps) {
