@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
 export type AuthState =
-  | { error: string; offerReset?: boolean }
+  | { error: string; unmatched?: boolean; offerReset?: boolean }
   | { ok: string }
   | null;
 
@@ -18,46 +18,57 @@ async function siteOrigin(): Promise<string> {
   return `${proto}://${host}`;
 }
 
-/**
- * One box for both cases. Try to sign in; if the credentials are refused, try
- * to register the same address.
- *
- * Supabase deliberately returns the same "Invalid login credentials" whether
- * the account does not exist or the password is wrong -- otherwise the form
- * becomes a way to discover who has an account here. The sign-up attempt is
- * what tells the two apart: registering an address that already exists comes
- * back as a success with an empty `identities` array, which means the account
- * was real and the password was simply wrong.
- */
-export async function continueWithEmail(_prev: AuthState, formData: FormData): Promise<AuthState> {
+const ALREADY_REGISTERED =
+  'That email already has an account, so the password does not match it.';
+
+export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const email = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
-  const fullName = String(formData.get('full_name') ?? '').trim();
 
-  if (!email || !password) return { error: 'Enter your email and a password.' };
+  if (!email || !password) return { error: 'Enter your email and password.' };
 
   const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-
-  if (!signInError) {
+  if (!error) {
     revalidatePath('/', 'layout');
     redirect('/');
   }
 
-  if (signInError.message.toLowerCase().includes('email not confirmed')) {
+  const message = error.message.toLowerCase();
+
+  if (message.includes('email not confirmed')) {
     return {
       error:
-        'This account exists but the email address has not been confirmed yet. ' +
-        'Open the link we sent you, then come back and sign in.',
+        'This account exists but its email address has not been confirmed yet. ' +
+        'Open the link we sent you, then sign in again.',
     };
   }
 
-  if (!signInError.message.toLowerCase().includes('invalid login credentials')) {
-    return { error: signInError.message };
+  // Supabase answers the same way whether the account is missing or the
+  // password is wrong -- otherwise this form becomes a way to discover who
+  // has an account here. So we cannot say which it is; we offer both routes
+  // and let the sign-up attempt settle it.
+  if (message.includes('invalid login credentials')) {
+    return {
+      error: 'We could not sign you in with that email and password.',
+      unmatched: true,
+    };
   }
 
-  const { data, error: signUpError } = await supabase.auth.signUp({
+  return { error: error.message };
+}
+
+export async function createAccount(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const email = String(formData.get('email') ?? '').trim();
+  const password = String(formData.get('password') ?? '');
+  const fullName = String(formData.get('full_name') ?? '').trim();
+
+  if (!fullName) return { error: 'Enter your full name as it appears on your records.' };
+  if (password.length < 8) return { error: 'Use a password of at least 8 characters.' };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -66,15 +77,18 @@ export async function continueWithEmail(_prev: AuthState, formData: FormData): P
     },
   });
 
-  if (signUpError) {
-    if (signUpError.message.toLowerCase().includes('already registered')) {
-      return { error: 'That password does not match this email address.', offerReset: true };
+  if (error) {
+    if (error.message.toLowerCase().includes('already registered')) {
+      return { error: ALREADY_REGISTERED, offerReset: true };
     }
-    return { error: signUpError.message };
+    return { error: error.message };
   }
 
+  // Registering an address that already exists comes back as a success with
+  // an empty identities array. That is what tells us the account was real and
+  // the password was simply wrong.
   if (data.user && data.user.identities && data.user.identities.length === 0) {
-    return { error: 'That password does not match this email address.', offerReset: true };
+    return { error: ALREADY_REGISTERED, offerReset: true };
   }
 
   if (data.session) {
@@ -84,8 +98,8 @@ export async function continueWithEmail(_prev: AuthState, formData: FormData): P
 
   return {
     ok:
-      `We have created your account and sent a confirmation link to ${email}. ` +
-      'Open it, then come back and sign in with the same password.',
+      `Account created. We have sent a confirmation link to ${email} — open it, ` +
+      'then sign in with the password you just chose.',
   };
 }
 
@@ -100,11 +114,8 @@ export async function sendPasswordReset(_prev: AuthState, formData: FormData): P
 
   if (error) return { error: error.message };
 
-  // Deliberately the same answer whether or not the address is registered,
-  // for the same reason the sign-in error is vague.
-  return {
-    ok: `If ${email} has an account, a link to set a new password is on its way.`,
-  };
+  // Deliberately the same answer whether or not the address is registered.
+  return { ok: `If ${email} has an account, a link to set a new password is on its way.` };
 }
 
 export async function signOut() {

@@ -2,15 +2,24 @@
 
 import Link from 'next/link';
 import { useActionState, useState } from 'react';
-import { continueWithEmail, sendPasswordReset } from './actions';
+import { signIn, createAccount, sendPasswordReset } from './actions';
+
+type Mode = 'sign-in' | 'create' | 'reset';
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<'sign-in' | 'reset'>('sign-in');
-  const [state, action, pending] = useActionState(continueWithEmail, null);
-  const [resetState, resetAction, resetPending] = useActionState(sendPasswordReset, null);
+  const [mode, setMode] = useState<Mode>('sign-in');
+  // Carried across the modes so nobody retypes what they already gave us.
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const offerReset = state && 'offerReset' in state && state.offerReset;
+  const [inState, inAction, inPending] = useActionState(signIn, null);
+  const [upState, upAction, upPending] = useActionState(createAccount, null);
+  const [rsState, rsAction, rsPending] = useActionState(sendPasswordReset, null);
 
+  const unmatched = inState && 'error' in inState && inState.unmatched;
+  const offerReset = upState && 'error' in upState && upState.offerReset;
+
+  /* ------------------------------------------------------------- reset -- */
   if (mode === 'reset') {
     return (
       <main className="wrap narrow stack-lg">
@@ -18,28 +27,30 @@ export default function LoginPage() {
           <span className="eyebrow">Account</span>
           <h1>Forgot your password?</h1>
           <p className="lede">
-            Enter the email address on your account and we will send you a link to set a
+            Enter the email address on your account and we will send a link to set a
             new one.
           </p>
         </header>
 
-        <form action={resetAction} className="card stack">
+        <form key="reset" action={rsAction} className="card stack">
           <label className="field">
             <span className="label">Email</span>
-            <input name="email" type="email" required autoComplete="email" autoFocus />
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </label>
 
-          {resetState && 'error' in resetState && (
-            <p className="notice bad">{resetState.error}</p>
-          )}
-          {resetState && 'ok' in resetState && (
-            <p className="notice good">{resetState.ok}</p>
-          )}
+          {rsState && 'error' in rsState && <p className="notice bad">{rsState.error}</p>}
+          {rsState && 'ok' in rsState && <p className="notice good">{rsState.ok}</p>}
 
           <div className="row">
-            <button disabled={resetPending}>
-              {resetPending ? 'Sending…' : 'Send the link'}
-            </button>
+            <button disabled={rsPending}>{rsPending ? 'Sending…' : 'Send the link'}</button>
             <button type="button" className="ghost" onClick={() => setMode('sign-in')}>
               Back to sign in
             </button>
@@ -49,21 +60,95 @@ export default function LoginPage() {
     );
   }
 
+  /* ------------------------------------------------------------ create -- */
+  if (mode === 'create') {
+    return (
+      <main className="wrap narrow stack-lg">
+        <header className="stack">
+          <span className="eyebrow">Account</span>
+          <h1>Create your account</h1>
+          <p className="lede">
+            Your name is what the office will see on the requests you file, so use the
+            one on your school records.
+          </p>
+        </header>
+
+        <form key="create" action={upAction} className="card stack">
+          <label className="field">
+            <span className="label">Full name</span>
+            <input name="full_name" required autoComplete="name" autoFocus />
+          </label>
+
+          <label className="field">
+            <span className="label">Email</span>
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </label>
+
+          <label className="field">
+            <span className="label">Password</span>
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span className="muted" style={{ fontSize: '.9rem' }}>At least 8 characters.</span>
+          </label>
+
+          {upState && 'error' in upState && <p className="notice bad">{upState.error}</p>}
+          {upState && 'ok' in upState && <p className="notice good">{upState.ok}</p>}
+
+          <div className="row">
+            <button disabled={upPending}>
+              {upPending ? 'Creating…' : 'Create account'}
+            </button>
+            {offerReset ? (
+              <button type="button" className="ghost" onClick={() => setMode('reset')}>
+                Reset my password
+              </button>
+            ) : (
+              <button type="button" className="ghost" onClick={() => setMode('sign-in')}>
+                Back to sign in
+              </button>
+            )}
+          </div>
+        </form>
+      </main>
+    );
+  }
+
+  /* ----------------------------------------------------------- sign in -- */
   return (
     <main className="wrap narrow stack-lg">
       <header className="stack">
         <span className="eyebrow">Account</span>
         <h1>Sign in</h1>
         <p className="lede">
-          Enter your school email and a password. If you have not used this before, we
-          will create your account.
+          Students and staff sign in here. Guests do not need an account.
         </p>
       </header>
 
-      <form action={action} className="card stack">
+      <form key="sign-in" action={inAction} className="card stack">
         <label className="field">
           <span className="label">Email</span>
-          <input name="email" type="email" required autoComplete="email" />
+          <input
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
 
         <label className="field">
@@ -72,33 +157,41 @@ export default function LoginPage() {
             name="password"
             type="password"
             required
-            minLength={8}
             autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
-          <span className="muted" style={{ fontSize: '.9rem' }}>
-            At least 8 characters. If this is a new account, this becomes your password.
-          </span>
         </label>
 
-        <label className="field">
-          <span className="label">Full name</span>
-          <input name="full_name" autoComplete="name" placeholder="Only needed for a new account" />
-        </label>
-
-        {state && 'error' in state && <p className="notice bad">{state.error}</p>}
-        {state && 'ok' in state && <p className="notice good">{state.ok}</p>}
+        {inState && 'error' in inState && <p className="notice bad">{inState.error}</p>}
 
         <div className="row">
-          <button disabled={pending}>{pending ? 'Checking…' : 'Continue'}</button>
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => setMode('reset')}
-          >
-            {offerReset ? 'Reset my password' : 'Forgot your password?'}
+          <button disabled={inPending}>{inPending ? 'Signing in…' : 'Sign in'}</button>
+          <button type="button" className="ghost" onClick={() => setMode('reset')}>
+            Forgot your password?
           </button>
         </div>
       </form>
+
+      {/* Only after a failed attempt, because until then we have no reason to
+          think they need an account -- and cannot tell if they do. */}
+      {unmatched && (
+        <div className="aside-card">
+          <h3>No account yet?</h3>
+          <p className="muted small">
+            If you have never signed in here, create an account with that email. If you
+            have, the password was wrong &mdash; reset it instead.
+          </p>
+          <div className="row">
+            <button className="tiny" onClick={() => setMode('create')}>
+              Create an account
+            </button>
+            <button className="ghost tiny" onClick={() => setMode('reset')}>
+              Reset my password
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="aside-card">
         <h3>Not a student or employee?</h3>
