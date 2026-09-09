@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import NavBar from '@/components/NavBar';
 import FaqBubble from '@/components/FaqBubble';
+import BackBar from '@/components/BackBar';
 
 export const metadata: Metadata = {
   title: 'Registrar & Treasury Services',
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <NavBar />
+        <BackBar />
         {children}
         <FaqBubble />
       </body>

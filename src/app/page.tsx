@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import DepartmentPicker from '@/components/DepartmentPicker';
+import TrackInline from '@/components/TrackInline';
 
 export default function Home() {
   return (
@@ -15,26 +16,30 @@ export default function Home() {
       </header>
 
       <section className="stack reveal" style={{ '--d': '90ms' } as React.CSSProperties}>
-        <h2>Other ways in</h2>
-        <div className="grid2">
-          <Link href="/inquiry" className="card">
-            <h3>I am not a student or employee</h3>
+        <div className="card track-card">
+          <div className="stack" style={{ gap: '.4rem' }}>
+            <h2>Track your transaction</h2>
             <p className="muted">
-              Send an inquiry without an account. You will get a reference number to
-              track the reply.
+              Already filed something? Type the reference from your email or receipt and
+              we will show you exactly where it is.
             </p>
-          </Link>
-          <Link href="/track" className="card">
-            <h3>I already have a reference</h3>
-            <p className="muted">
-              Check where a request or inquiry has reached, from submitted through
-              to release.
-            </p>
-          </Link>
+          </div>
+          <TrackInline />
         </div>
       </section>
 
       <section className="stack reveal" style={{ '--d': '180ms' } as React.CSSProperties}>
+        <h2>Not a student or employee?</h2>
+        <Link href="/inquiry" className="card">
+          <h3>Send a guest inquiry</h3>
+          <p className="muted">
+            No account needed. Ask the registrar or the treasury a question and you will
+            get a reference number to follow the reply.
+          </p>
+        </Link>
+      </section>
+
+      <section className="stack reveal" style={{ '--d': '270ms' } as React.CSSProperties}>
         <h2>How it works</h2>
         <ol className="steps">
           <li>
@@ -61,7 +66,7 @@ export default function Home() {
         </ol>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '270ms' } as React.CSSProperties}>
+      <section className="stack reveal" style={{ '--d': '360ms' } as React.CSSProperties}>
         <h2>Lobby displays</h2>
         <p className="muted">
           Open one of these full-screen on the television in the lobby. It reconnects on

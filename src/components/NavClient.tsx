@@ -16,6 +16,7 @@ export type NavProps = {
 };
 
 const PUBLIC_LINKS = [
+  { href: '/', label: 'Home' },
   { href: '/request', label: 'Request' },
   { href: '/queue', label: 'Queue' },
   { href: '/appointments', label: 'Appointments' },

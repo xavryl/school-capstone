@@ -672,3 +672,38 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   45%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bad) 32%, transparent); }
 }
 .badge { animation: badge-pulse 2.2s ease-out 3; }
+
+/* ---------------------------------------------------------- back / home -- */
+.backbar { border-bottom: 1px solid var(--line); background: var(--sunk); }
+.backbar-inner {
+  max-width: 78rem; margin: 0 auto; padding: .55rem 1.1rem;
+  display: flex; align-items: center; gap: .75rem;
+}
+.back-btn, .home-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--surface); color: var(--ink);
+  border: 2px solid var(--line); border-radius: 8px;
+  padding: .45rem .9rem; min-height: 2.7rem;
+  font-size: .95rem; font-weight: 600; text-decoration: none; cursor: pointer;
+  transition: border-color .15s ease, color .15s ease, transform .15s ease;
+}
+.back-btn:hover, .home-btn:hover {
+  border-color: var(--accent); color: var(--accent); filter: none;
+}
+.back-btn:hover { transform: translateX(-2px); }
+.back-btn svg, .home-btn svg { width: 1.05rem; height: 1.05rem; }
+.home-btn { margin-left: auto; }
+.backbar-title {
+  font-weight: 600; color: var(--muted); font-size: .98rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+@media (max-width: 30rem) {
+  .backbar-title { display: none; }
+}
+
+/* --------------------------------------------------- track on the front -- */
+.track-card { border-color: var(--accent); border-width: 2px; }
+.track-inline {
+  display: flex; gap: .8rem; align-items: flex-end; flex-wrap: wrap;
+}
+.track-inline button { flex: 0 0 auto; }
