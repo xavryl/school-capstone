@@ -124,33 +124,8 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Three soft colour fields drifting behind everything. Fixed, so it costs one
-   composited layer no matter how long the page is, and pointer-events: none so
-   it can never intercept a tap. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: -25vmax;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(38vmax 38vmax at 20% 14%, var(--glow-a), transparent 62%),
-    radial-gradient(34vmax 34vmax at 82% 30%, var(--glow-b), transparent 62%),
-    radial-gradient(32vmax 32vmax at 48% 88%, var(--glow-c), transparent 64%);
-  animation: drift 26s ease-in-out infinite alternate;
-  will-change: transform;
-}
-
-@keyframes drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
-  50%  { transform: translate3d(7vmax, -5vmax, 0) scale(1.14) rotate(3deg); }
-  100% { transform: translate3d(-6vmax, 6vmax, 0) scale(1.06) rotate(-2deg); }
-}
-
-/* The lobby television runs this page for eight hours a day on a wall. Drifting
-   colour behind the numbers is a distraction there, and a permanent animation
-   on a cheap TV stick is wasted power. */
-body:has(.tv)::before { animation: none; opacity: .5; }
+/* The wave layer is drawn as an SVG in the layout so its bands can use the
+   theme tokens directly. Nothing here moves. */
 
 .wrap { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
 .narrow { max-width: 40rem; }
@@ -530,7 +505,6 @@ body:has(.tv) .faq-panel { display: none; }
     animation-iteration-count: 1 !important;
   }
   a.card:hover { transform: none; }
-  body::before { animation: none !important; }
 }
 
 /* ===========================================================================
@@ -540,10 +514,6 @@ body:has(.tv) .faq-panel { display: none; }
    by the prefers-reduced-motion block at the end of this file.
    =========================================================================== */
 
-@keyframes rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: none; }
-}
 @keyframes pop {
   from { opacity: 0; transform: scale(.96) translateY(-6px); }
   to   { opacity: 1; transform: none; }
@@ -556,12 +526,7 @@ body:has(.tv) .faq-panel { display: none; }
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: none; }
 }
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 0 0 transparent; }
-  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, var(--signal) 22%, transparent); }
-}
 
-.reveal { animation: rise .5s cubic-bezier(.22, .8, .3, 1) both; animation-delay: var(--d, 0ms); }
 
 /* --------------------------------------------------------------- landing -- */
 /* The .reveal animation animates transform, which makes every section its
@@ -654,10 +619,6 @@ body:has(.tv) .faq-panel { display: none; }
 .nav-links.open { animation: drop .2s ease both; }
 .faq-panel { animation: pop .24s cubic-bezier(.22, .9, .3, 1) both; }
 .faq-item p, .faq-item .faq-link { animation: drop .18s ease both; }
-.ticket-number { animation: pop .45s cubic-bezier(.2, 1.1, .35, 1) both; }
-.tile-value { animation: rise .45s ease both; }
-.notice { animation: drop .22s ease both; }
-.tv-slot.live { animation: glow 2.6s ease-in-out infinite; }
 button:active:not(:disabled), .btn:active { transform: scale(.985); }
 
 /* Two floating things must not compete for the same corner: while the office
@@ -727,11 +688,6 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
    and then stops, rather than blinking at you all session. */
 .avatar { transition: transform .2s cubic-bezier(.2, .9, .3, 1), border-color .15s ease; }
 .avatar:hover { transform: scale(1.07); }
-@keyframes badge-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 transparent; }
-  45%      { box-shadow: 0 0 0 5px color-mix(in srgb, var(--bad) 32%, transparent); }
-}
-.badge { animation: badge-pulse 2.2s ease-out 3; }
 
 /* ---------------------------------------------------------- back / home -- */
 .backbar { border-bottom: 1px solid var(--line); background: var(--sunk); }
@@ -796,105 +752,11 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 .ticklist svg { width: 1.05rem; height: 1.05rem; color: var(--good); flex: none; margin-top: .26rem; }
 
-/* ===========================================================================
-   Motion you can actually see. The load-time reveals fire once and are easy
-   to miss; these are tied to scroll and to hover, so the page keeps moving
-   while you use it. Everything is still switched off by prefers-reduced-motion.
-   =========================================================================== */
-
-/* --- scroll progress ---------------------------------------------------- */
-.scroll-progress {
-  position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 70;
-  background: linear-gradient(90deg, var(--accent), var(--signal));
-  transform: scaleX(0); transform-origin: 0 50%; pointer-events: none;
+/* ------------------------------------------------------------- wave layer -- */
+.waves {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  overflow: hidden;
 }
-@supports (animation-timeline: scroll()) {
-  .scroll-progress {
-    animation: fill-bar linear both;
-    animation-timeline: scroll(root block);
-  }
-}
-@keyframes fill-bar { to { transform: scaleX(1); } }
-body:has(.tv) .scroll-progress { display: none; }
-
-/* --- sections arrive as you scroll to them ------------------------------ */
-/* Falls back to the existing load-time reveal where view() is unsupported,
-   so content is never left parked invisible. */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: rise-scroll linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 26%;
-      animation-delay: 0s;
-    }
-  }
-}
-@keyframes rise-scroll {
-  from { opacity: 0; transform: translateY(34px) scale(.985); }
-  to   { opacity: 1; transform: none; }
-}
-
-/* --- cards lift properly ------------------------------------------------ */
-.card { transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s ease, border-color .18s ease; }
-a.card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); }
-.aside-card { transition: transform .22s cubic-bezier(.2,.9,.3,1), border-color .18s ease; }
-.aside-card:hover { transform: translateY(-3px); border-color: var(--accent); }
-
-/* --- a light sweeps across a primary button on hover -------------------- */
-button, .btn { position: relative; overflow: hidden; }
-button::after, .btn::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%);
-  transform: translateX(-120%); pointer-events: none;
-}
-button:hover::after, .btn:hover::after { animation: sweep .7s ease-out; }
-@keyframes sweep { to { transform: translateX(120%); } }
-button.ghost::after, .btn.ghost::after { opacity: .45; }
-
-/* --- the primary call to action breathes until it is used --------------- */
-.picker-cta { animation: breathe 3.4s ease-in-out 6; }
-@keyframes breathe {
-  0%, 100% { box-shadow: var(--shadow); }
-  50%      { box-shadow: 0 0 0 9px color-mix(in srgb, var(--accent) 14%, transparent); }
-}
-.picker:hover .picker-cta, .picker-cta[aria-expanded="true"] { animation: none; }
-
-/* --- lists arrive item by item ------------------------------------------ */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .steps li, .ticklist li, .bubble-grid > * {
-      animation: slip .5s cubic-bezier(.2,.9,.3,1) both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 20%;
-    }
-  }
-}
-@keyframes slip {
-  from { opacity: 0; transform: translateX(-14px); }
-  to   { opacity: 1; transform: none; }
-}
-.steps li:hover .step-n { transform: scale(1.12) rotate(-6deg); }
-.step-n { transition: transform .25s cubic-bezier(.2,.9,.3,1); }
-
-/* --- the raised track box floats gently --------------------------------- */
-.track-box { animation: bob 7s ease-in-out infinite alternate; }
-@keyframes bob {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-7px); }
-}
-.track-box:hover { animation-play-state: paused; }
-
-/* --- inputs glow as you focus them -------------------------------------- */
-input, textarea, select { transition: border-color .18s ease, box-shadow .18s ease; }
-input:focus, textarea:focus, select:focus {
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-
-/* --- the help button nudges once the page settles ----------------------- */
-.faq-fab { animation: fab-in .5s cubic-bezier(.2,1.2,.4,1) both .8s; }
-@keyframes fab-in {
-  from { opacity: 0; transform: scale(.4) translateY(18px); }
-  to   { opacity: 1; transform: none; }
-}
-.faq-fab:hover { transform: scale(1.08) rotate(6deg); transition: transform .22s cubic-bezier(.2,.9,.3,1); }
+.waves svg { width: 100%; height: 100%; display: block; }
+/* Softer behind the queue numbers on a wall screen. */
+body:has(.tv) .waves { opacity: .45; }

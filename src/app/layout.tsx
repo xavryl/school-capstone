@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import NavBar from '@/components/NavBar';
 import FaqBubble from '@/components/FaqBubble';
+import BackgroundWaves from '@/components/BackgroundWaves';
 import BackBar from '@/components/BackBar';
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
-        <div className="scroll-progress" aria-hidden="true" />
+        <BackgroundWaves />
         <NavBar />
         <BackBar />
         {children}

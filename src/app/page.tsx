@@ -5,7 +5,7 @@ import TrackInline from '@/components/TrackInline';
 export default function Home() {
   return (
     <main className="wrap stack-lg">
-      <header className="hero reveal" style={{ '--d': '0ms' } as React.CSSProperties}>
+      <header className="hero">
         <div className="hero-main">
           <span className="eyebrow">Registrar &middot; Treasury</span>
           <h1 className="hero-title">Need a transaction?</h1>
@@ -27,7 +27,7 @@ export default function Home() {
         </aside>
       </header>
 
-      <section className="stack reveal" style={{ '--d': '120ms' } as React.CSSProperties}>
+      <section className="stack">
         <h2>Not a student or employee?</h2>
         <Link href="/inquiry" className="card">
           <h3>Send a guest inquiry</h3>
@@ -38,7 +38,7 @@ export default function Home() {
         </Link>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '210ms' } as React.CSSProperties}>
+      <section className="stack">
         <h2>How it works</h2>
         <ol className="steps">
           <li>
