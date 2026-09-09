@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/app/login/actions';
 import { initials } from '@/lib/profile';
+import { toDisplayName } from '@/lib/auth';
 import ThemeToggle from './ThemeToggle';
 
 export type NavProps = {
@@ -138,7 +139,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
               <Link
                 href="/profile"
                 className="avatar"
-                title={`Signed in as ${fullName || email}`}
+                title={`Signed in as ${fullName || toDisplayName(email)}`}
                 aria-label="Your profile"
               >
                 {avatarUrl ? (

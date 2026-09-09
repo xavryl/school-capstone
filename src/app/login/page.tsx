@@ -149,18 +149,20 @@ export default function LoginPage() {
           <span className="eyebrow">Account</span>
           <h1>Sign in</h1>
           <p className="lede">
-            Students and staff sign in here. Guests do not need an account.
+            Office staff sign in with their office name. Students use the email
+            address they registered with. Guests do not need an account at all.
           </p>
         </header>
 
         <form action={inAction} className="card stack">
           <label className="field">
-            <span className="label">Email</span>
+            <span className="label">Username or email</span>
             <input
               name="email"
-              type="email"
+              type="text"
               required
-              autoComplete="email"
+              autoComplete="username"
+              placeholder="registrar"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { signOut } from '@/app/login/actions';
 import type { Profile } from '@/lib/profile';
 import ProfileEditor from './ProfileEditor';
+import CredentialsCard from './CredentialsCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -65,6 +66,8 @@ export default async function ProfilePage() {
       </header>
 
       <ProfileEditor profile={p} email={user.email ?? ''} />
+
+      <CredentialsCard email={user.email ?? ''} />
 
       <div className="card stack">
         <h2>Sign out</h2>

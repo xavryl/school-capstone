@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { toEmail } from '@/lib/auth';
 
 export type AuthState =
   | { error: string; offerReset?: boolean }
@@ -22,10 +23,13 @@ const ALREADY_REGISTERED =
   'That email already has an account, so the password does not match it.';
 
 export async function signIn(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const email = String(formData.get('email') ?? '').trim();
+  const identifier = String(formData.get('email') ?? '').trim();
   const password = String(formData.get('password') ?? '');
 
-  if (!email || !password) return { error: 'Enter your email and password.' };
+  if (!identifier || !password) return { error: 'Enter your username and password.' };
+
+  // "registrar" and registrar@school.local are the same account.
+  const email = toEmail(identifier);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -52,8 +56,8 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
   if (message.includes('invalid login credentials')) {
     return {
       error:
-        'We could not sign you in with that email and password. If you have not ' +
-        'used this before, create an account. If you have, reset your password.',
+        'We could not sign you in with that username and password. If you have ' +
+        'not used this before, create an account. If you have, reset your password.',
     };
   }
 
