@@ -12,8 +12,14 @@
 :root {
   color-scheme: light;
   --ground: #f2f5f9;
-  --surface: #ffffff;
+  /* Not pure white. A full-width nav plus a page of cards in #fff is a lot of
+     glare; two points off it costs no measurable contrast and reads softer. */
+  --surface: #fcfdff;
   --sunk: #eaeff6;
+  --bg: linear-gradient(168deg, #eef3fa 0%, #f6f4f0 52%, #edf1f8 100%);
+  --glow-a: rgba(104, 150, 214, .22);
+  --glow-b: rgba(226, 176, 112, .16);
+  --glow-c: rgba(126, 196, 186, .16);
   --ink: #15202f;          /* 15.8:1 on surface */
   --muted: #45536a;        /*  8.3:1 on surface */
   --faint: #5a687e;        /*  6.1:1 on surface */
@@ -44,6 +50,10 @@
     --ground: #0f141c;
     --surface: #1a2029;
     --sunk: #212a35;
+    --bg: linear-gradient(168deg, #0c1118 0%, #121926 52%, #0d131b 100%);
+    --glow-a: rgba(70, 116, 190, .22);
+    --glow-b: rgba(196, 134, 62, .13);
+    --glow-c: rgba(60, 132, 156, .15);
     --ink: #eef3fa;
     --muted: #b6c2d1;
     --faint: #94a2b4;
@@ -73,6 +83,10 @@
   --ground: #0f141c;
   --surface: #1a2029;
   --sunk: #212a35;
+  --bg: linear-gradient(168deg, #0c1118 0%, #121926 52%, #0d131b 100%);
+  --glow-a: rgba(70, 116, 190, .22);
+  --glow-b: rgba(196, 134, 62, .13);
+  --glow-c: rgba(60, 132, 156, .15);
   --ink: #eef3fa;
   --muted: #b6c2d1;
   --faint: #94a2b4;
@@ -95,8 +109,13 @@
 
 * { box-sizing: border-box; }
 
+/* The base wash lives on <html> so it propagates to the page canvas and does
+   not scroll or repeat. body stays transparent so the ambient layer below can
+   sit between the wash and the content. */
+html { background: var(--bg); background-attachment: fixed; }
+
 body {
-  background: var(--ground);
+  background: transparent;
   color: var(--ink);
   font-family: var(--f-display);
   font-size: 18px;
@@ -104,6 +123,34 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
 }
+
+/* Three soft colour fields drifting behind everything. Fixed, so it costs one
+   composited layer no matter how long the page is, and pointer-events: none so
+   it can never intercept a tap. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -25vmax;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(38vmax 38vmax at 20% 14%, var(--glow-a), transparent 62%),
+    radial-gradient(34vmax 34vmax at 82% 30%, var(--glow-b), transparent 62%),
+    radial-gradient(32vmax 32vmax at 48% 88%, var(--glow-c), transparent 64%);
+  animation: drift 54s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(3vmax, -2.4vmax, 0) scale(1.07); }
+  100% { transform: translate3d(-2.4vmax, 3vmax, 0) scale(1.03); }
+}
+
+/* The lobby television runs this page for eight hours a day on a wall. Drifting
+   colour behind the numbers is a distraction there, and a permanent animation
+   on a cheap TV stick is wasted power. */
+body:has(.tv)::before { animation: none; opacity: .5; }
 
 .wrap { max-width: 64rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
 .narrow { max-width: 40rem; }
@@ -223,7 +270,9 @@ tbody tr:hover td { background: var(--sunk); }
 /* ------------------------------------------------------------------- nav -- */
 .nav {
   position: sticky; top: 0; z-index: 50;
-  background: var(--surface); border-bottom: 2px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: blur(12px) saturate(1.4);
+  border-bottom: 2px solid var(--line);
 }
 .nav-inner {
   max-width: 78rem; margin: 0 auto; padding: .7rem 1.1rem;
@@ -476,8 +525,12 @@ body:has(.tv) .faq-panel { display: none; }
   *, *::before, *::after {
     animation-duration: .01ms !important;
     transition-duration: .01ms !important;
+    /* Without this, an `infinite` animation squeezed into .01ms runs thousands
+       of iterations a second -- the opposite of what was asked for. */
+    animation-iteration-count: 1 !important;
   }
   a.card:hover { transform: none; }
+  body::before { animation: none !important; }
 }
 
 /* ===========================================================================
