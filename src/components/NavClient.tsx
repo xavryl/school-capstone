@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { signOut } from '@/app/login/actions';
 import { initials } from '@/lib/profile';
+import ThemeToggle from './ThemeToggle';
 
 export type NavProps = {
   email: string | null;
@@ -108,9 +109,16 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
               Profile
             </Link>
           )}
+
+          <span className="mobile-only" style={{ marginTop: '.4rem' }}>
+            <ThemeToggle />
+          </span>
         </div>
 
         <div className="nav-right">
+          <span className="desktop-only">
+            <ThemeToggle />
+          </span>
           {email ? (
             <>
               <Link
@@ -139,7 +147,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
               </form>
             </>
           ) : (
-            <Link href="/login" className="btn" style={{ padding: '.38rem .8rem' }}>
+            <Link href="/login" className="btn tiny">
               Sign in
             </Link>
           )}
