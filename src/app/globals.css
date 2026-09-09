@@ -875,3 +875,22 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   .svc-row { grid-template-columns: minmax(0, 1fr) auto; }
   .svc-bar { display: none; }
 }
+
+/* --------------------------------------------------------- inbox tickets -- */
+/* A ticket is deliberately close to an email row: the identifying line first,
+   then the subject, then just enough of the message to decide without opening
+   it. Anything longer belongs on the Requests or Inquiries page. */
+.ticket {
+  display: flex; flex-direction: column; gap: .55rem;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 1rem 1.1rem;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.ticket:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+.ticket-head {
+  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
+}
+.ticket-ref { font-size: .88rem; color: var(--muted); }
+.ticket-title { font-size: 1.04rem; line-height: 1.4; }
+.ticket-detail { margin: 0; font-size: .96rem; line-height: 1.55; }
+.ticket .row { gap: .5rem; flex-wrap: wrap; align-items: center; }

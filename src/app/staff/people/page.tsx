@@ -6,7 +6,12 @@ import PersonRow, { type Person } from './PersonRow';
 export const dynamic = 'force-dynamic';
 
 type ProfileRow = { id: string; full_name: string; student_no: string | null };
-type StaffRow = { user_id: string; department: Department; is_admin: boolean };
+type StaffRow = {
+  user_id: string;
+  department: Department;
+  role: 'staff' | 'head';
+  is_admin: boolean;
+};
 
 export default async function StaffAccountsPage() {
   const gate = await getStaffGate();
@@ -29,7 +34,7 @@ export default async function StaffAccountsPage() {
   const supabase = await createClient();
   const [{ data: profiles }, { data: staff }] = await Promise.all([
     supabase.from('profiles').select('id, full_name, student_no').order('full_name'),
-    supabase.from('staff').select('user_id, department, is_admin'),
+    supabase.from('staff').select('*'),
   ]);
 
   const byUser = new Map(((staff ?? []) as StaffRow[]).map((s) => [s.user_id, s]));
@@ -41,6 +46,7 @@ export default async function StaffAccountsPage() {
       full_name: p.full_name,
       student_no: p.student_no,
       department: s?.department ?? null,
+      role: s?.role ?? 'staff',
       is_admin: s?.is_admin ?? false,
       isSelf: p.id === gate.ctx.userId,
     };
@@ -66,11 +72,21 @@ export default async function StaffAccountsPage() {
       </header>
 
       <div className="aside-card">
+        <h3>What the three levels mean</h3>
+        <p className="muted small">
+          <strong>Office staff</strong> work the inbox: they take concerns addressed to
+          their office and answer them. <strong>Office head</strong> is that office&rsquo;s
+          administrator — they see everything it handles, hand work to their staff and
+          pull its reports. <strong>System administrator</strong> spans both offices and
+          is the only level that can change this page.
+        </p>
+      </div>
+
+      <div className="aside-card">
         <h3>Where do the names come from?</h3>
         <p className="muted small">
           Everyone who has registered appears here — the list is mostly students. An
-          account only reaches the console once you give it an office. Administrators
-          see both offices and can produce reports for either.
+          account only reaches the console once you give it an office.
         </p>
       </div>
 

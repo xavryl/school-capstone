@@ -13,6 +13,7 @@ import type { Department } from '@/lib/types';
 export async function setStaffRole(
   userId: string,
   department: Department | 'none',
+  role: 'staff' | 'head',
   isAdmin: boolean,
 ) {
   const gate = await getStaffGate();
@@ -34,7 +35,7 @@ export async function setStaffRole(
   } else {
     const { error } = await supabase
       .from('staff')
-      .upsert({ user_id: userId, department, is_admin: isAdmin }, { onConflict: 'user_id' });
+      .upsert({ user_id: userId, department, role, is_admin: isAdmin }, { onConflict: 'user_id' });
     if (error) return { error: error.message };
   }
 

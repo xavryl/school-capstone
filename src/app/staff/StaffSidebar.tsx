@@ -3,16 +3,17 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import type { Scope } from '@/lib/staff';
-import type { Department } from '@/lib/types';
 
 const TABS = [
   { href: '/staff', label: 'Overview', exact: true },
+  { href: '/staff/inbox', label: 'Inbox' },
   { href: '/staff/queue', label: 'Queue' },
   { href: '/staff/requests', label: 'Requests' },
   { href: '/staff/appointments', label: 'Appointments' },
   { href: '/staff/inquiries', label: 'Inquiries' },
-  { href: '/staff/reports', label: 'Reports' },
 ];
+
+const MANAGE_TABS = [{ href: '/staff/reports', label: 'Reports' }];
 
 const ADMIN_TABS = [{ href: '/staff/people', label: 'Staff accounts' }];
 
@@ -24,11 +25,13 @@ const SCOPES: { id: Scope; label: string }[] = [
 
 export default function StaffSidebar({
   isAdmin,
-  home,
+  canManage,
+  roleLabel,
   scope,
 }: {
   isAdmin: boolean;
-  home: Department;
+  canManage: boolean;
+  roleLabel: string;
   scope: Scope;
 }) {
   const pathname = usePathname();
@@ -50,7 +53,7 @@ export default function StaffSidebar({
     <aside className="staff-side">
       <div className="staff-side-head">
         <span className="label">Signed in as</span>
-        <strong>{isAdmin ? 'Administrator' : `${home} staff`}</strong>
+        <strong>{roleLabel}</strong>
       </div>
 
       {isAdmin && (
@@ -82,10 +85,21 @@ export default function StaffSidebar({
           </Link>
         ))}
 
-        {isAdmin && (
+        {canManage && (
           <>
-            <span className="staff-tab-divider">Administrator</span>
-            {ADMIN_TABS.map((t) => (
+            <span className="staff-tab-divider">
+              {isAdmin ? 'Administrator' : 'Office head'}
+            </span>
+            {MANAGE_TABS.map((t) => (
+              <Link
+                key={t.href}
+                href={withScope(t.href)}
+                className={`staff-tab${active(t.href) ? ' on' : ''}`}
+              >
+                {t.label}
+              </Link>
+            ))}
+            {isAdmin && ADMIN_TABS.map((t) => (
               <Link
                 key={t.href}
                 href={t.href}

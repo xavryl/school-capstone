@@ -4,12 +4,18 @@ import type { Department } from '@/lib/types';
 
 export type Scope = Department | 'all';
 
+/** Two levels inside an office. A head runs it; staff work its counter. */
+export type OfficeRole = 'staff' | 'head';
+
 export type StaffContext = {
   userId: string;
   email: string;
   /** The office this person belongs to. Fixed for staff, the default for an admin. */
   home: Department;
   isAdmin: boolean;
+  role: OfficeRole;
+  /** A head or a system admin: may hand work out and read the office reports. */
+  canManage: boolean;
   /** What is being looked at right now. Only an admin can widen this. */
   scope: Scope;
   /** The departments the current scope resolves to, for querying. */
@@ -39,9 +45,12 @@ export const getStaffGate = cache(async (deptParam?: string): Promise<StaffGate>
 
   if (!user) return { state: 'anonymous' };
 
+  // '*' rather than a named list: before 0009 is run there is no `role`
+  // column, and asking for it by name would fail the whole query and lock
+  // every staff member out of the console.
   const { data: row } = await supabase
     .from('staff')
-    .select('department, is_admin')
+    .select('*')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -49,6 +58,7 @@ export const getStaffGate = cache(async (deptParam?: string): Promise<StaffGate>
 
   const home = row.department as Department;
   const isAdmin = Boolean(row.is_admin);
+  const role = (row.role as OfficeRole) ?? 'staff';
 
   let scope: Scope = home;
   if (isAdmin) {
@@ -64,6 +74,8 @@ export const getStaffGate = cache(async (deptParam?: string): Promise<StaffGate>
       email: user.email ?? '',
       home,
       isAdmin,
+      role,
+      canManage: isAdmin || role === 'head',
       scope,
       departments: scope === 'all' ? ['registrar', 'treasury'] : [scope],
     },

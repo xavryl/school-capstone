@@ -15,6 +15,7 @@ const TITLES: Record<string, string> = {
   '/login': 'Sign in',
   '/reset-password': 'New password',
   '/staff': 'Staff console',
+  '/staff/inbox': 'Inbox',
   '/staff/queue': 'Queue',
   '/staff/requests': 'Requests',
   '/staff/appointments': 'Appointments',

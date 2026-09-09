@@ -9,17 +9,22 @@ export type Person = {
   full_name: string;
   student_no: string | null;
   department: Department | null;
+  role: 'staff' | 'head';
   is_admin: boolean;
   isSelf: boolean;
 };
 
 export default function PersonRow({ person }: { person: Person }) {
   const [dept, setDept] = useState<Department | 'none'>(person.department ?? 'none');
+  const [role, setRole] = useState<'staff' | 'head'>(person.role);
   const [isAdmin, setIsAdmin] = useState(person.is_admin);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  const changed = dept !== (person.department ?? 'none') || isAdmin !== person.is_admin;
+  const changed =
+    dept !== (person.department ?? 'none') ||
+    role !== person.role ||
+    isAdmin !== person.is_admin;
 
   return (
     <tr>
@@ -45,16 +50,30 @@ export default function PersonRow({ person }: { person: Person }) {
       </td>
 
       <td>
-        <label className="row" style={{ gap: '.45rem', flexWrap: 'nowrap' }}>
-          <input
-            type="checkbox"
-            checked={isAdmin}
+        <div className="stack" style={{ gap: '.4rem' }}>
+          <select
+            value={role}
             disabled={dept === 'none'}
-            onChange={(e) => setIsAdmin(e.target.checked)}
-            style={{ width: '1.15rem', height: '1.15rem', minHeight: 0 }}
-          />
-          <span className="muted" style={{ fontSize: '.92rem' }}>Administrator</span>
-        </label>
+            onChange={(e) => setRole(e.target.value as 'staff' | 'head')}
+            style={{ minWidth: '9rem' }}
+          >
+            <option value="staff">Office staff</option>
+            <option value="head">Office head</option>
+          </select>
+
+          <label className="row" style={{ gap: '.45rem', flexWrap: 'nowrap' }}>
+            <input
+              type="checkbox"
+              checked={isAdmin}
+              disabled={dept === 'none'}
+              onChange={(e) => setIsAdmin(e.target.checked)}
+              style={{ width: '1.15rem', height: '1.15rem', minHeight: 0 }}
+            />
+            <span className="muted" style={{ fontSize: '.92rem' }}>
+              System administrator
+            </span>
+          </label>
+        </div>
       </td>
 
       <td>
@@ -63,7 +82,7 @@ export default function PersonRow({ person }: { person: Person }) {
           disabled={pending || !changed}
           onClick={() =>
             start(async () => {
-              const r = await setStaffRole(person.id, dept, isAdmin);
+              const r = await setStaffRole(person.id, dept, role, isAdmin);
               setMsg(r.error ?? null);
             })
           }

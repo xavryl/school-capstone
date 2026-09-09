@@ -58,7 +58,18 @@ export default async function StaffLayout({
   return (
     <main className="wrap staff-shell">
       <Suspense fallback={<aside className="staff-side" />}>
-        <StaffSidebar isAdmin={ctx.isAdmin} home={ctx.home} scope={ctx.scope} />
+        <StaffSidebar
+          isAdmin={ctx.isAdmin}
+          canManage={ctx.canManage}
+          roleLabel={
+            ctx.isAdmin
+              ? 'System administrator'
+              : ctx.role === 'head'
+                ? `${ctx.home} head`
+                : `${ctx.home} staff`
+          }
+          scope={ctx.scope}
+        />
       </Suspense>
       <div className="staff-main">{children}</div>
     </main>

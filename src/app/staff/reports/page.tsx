@@ -40,6 +40,22 @@ export default async function ReportsPage({ searchParams }: Props) {
   // Reports are per office: a combined figure would hide which one is busy,
   // so 'all' falls back to the administrator's own office and the sidebar is
   // where you switch.
+  // Reports are a management view: the office head and the system
+  // administrator. Counter staff work their inbox, not the numbers.
+  if (!gate.ctx.canManage) {
+    return (
+      <div className="stack-lg">
+        <header className="stack">
+          <span className="eyebrow">Office head only</span>
+          <h1>Reports</h1>
+          <p className="lede">
+            Only the head of your office, or a system administrator, can pull these
+            figures. Ask whoever holds that role.
+          </p>
+        </header>
+      </div>
+    );
+  }
   const dept: Department = gate.ctx.scope === 'all' ? gate.ctx.home : gate.ctx.scope;
   const canSwitch = gate.ctx.isAdmin;
 
