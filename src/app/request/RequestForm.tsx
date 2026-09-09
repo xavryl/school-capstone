@@ -124,12 +124,23 @@ export default function RequestForm({
         </select>
       </label>
 
-      <label className="field">
-        <span className="label">Service</span>
-        <select name="service_id" required>
-          {visible.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-      </label>
+      {visible.length === 0 ? (
+        <div className="setup">
+          <strong>No services are set up yet.</strong>
+          <span className="muted">
+            The service list comes from the database. Run{' '}
+            <code>supabase/run-all-migrations.sql</code> in the Supabase SQL editor,
+            then reload this page.
+          </span>
+        </div>
+      ) : (
+        <label className="field">
+          <span className="label">Service</span>
+          <select name="service_id" required>
+            {visible.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </label>
+      )}
 
       <label className="field">
         <span className="label">Details of your request</span>
@@ -183,7 +194,9 @@ export default function RequestForm({
       {busy && <p className="notice">{busy}</p>}
 
       <div className="row">
-        <button disabled={busy !== ''}>{busy ? 'Working…' : 'File request'}</button>
+        <button disabled={busy !== '' || visible.length === 0}>
+          {busy ? 'Working…' : 'File request'}
+        </button>
       </div>
     </form>
   );

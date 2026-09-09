@@ -1,11 +1,12 @@
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { signOut } from '@/app/login/actions';
+import NavClient from './NavClient';
 
 /**
- * Server component: reads the session and the unread count on every render.
- * Wrapped in try/catch so the app still renders before Supabase credentials
- * exist -- otherwise every page 500s while you are still setting up.
+ * Server shell: reads the session and unread count, then hands them to the
+ * client half that owns the active-link state and the mobile panel.
+ *
+ * Wrapped in try/catch so the app still renders before the migrations have
+ * been run -- otherwise a missing table 500s every page in the site.
  */
 export default async function NavBar() {
   let email: string | null = null;
@@ -31,37 +32,8 @@ export default async function NavBar() {
       isStaff = Boolean(staffRow);
     }
   } catch {
-    // No credentials yet, or the project is asleep. Render the public nav.
+    // No credentials yet, tables not created, or the project is asleep.
   }
 
-  return (
-    <nav className="topbar">
-      <Link href="/" className="brand">One-Stop Services</Link>
-      <Link href="/request">Request</Link>
-      <Link href="/queue">Queue</Link>
-      <Link href="/appointments">Appointments</Link>
-      <Link href="/inquiry">Guest inquiry</Link>
-      <Link href="/track">Track</Link>
-      <span className="spacer" />
-      {email ? (
-        <>
-          <Link href="/profile">Profile</Link>
-          <Link href="/notifications">
-            Updates{unread > 0 && <span className="badge">{unread}</span>}
-          </Link>
-          {isStaff && <Link href="/staff">Staff</Link>}
-          <form action={signOut} style={{ display: 'inline' }}>
-            <button className="ghost" style={{ padding: '.3rem .7rem', fontSize: '.85rem' }}>
-              Sign out
-            </button>
-          </form>
-        </>
-      ) : (
-        <>
-          <Link href="/staff">Staff</Link>
-          <Link href="/login">Sign in</Link>
-        </>
-      )}
-    </nav>
-  );
+  return <NavClient email={email} unread={unread} isStaff={isStaff} />;
 }

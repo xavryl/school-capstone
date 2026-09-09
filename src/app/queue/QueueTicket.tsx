@@ -87,6 +87,16 @@ export default function QueueTicket({
         </label>
       </div>
 
+      {services.length === 0 && (
+        <div className="setup">
+          <strong>No services are set up yet.</strong>
+          <span className="muted">
+            Run <code>supabase/run-all-migrations.sql</code> in the Supabase SQL editor,
+            then reload. You can still take a number without picking a service.
+          </span>
+        </div>
+      )}
+
       {error && <p className="notice bad">{error}</p>}
 
       {loading && <p className="muted">Checking&hellip;</p>}
