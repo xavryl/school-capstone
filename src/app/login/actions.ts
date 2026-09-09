@@ -6,7 +6,7 @@ import { headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 
 export type AuthState =
-  | { error: string; unmatched?: boolean; offerReset?: boolean }
+  | { error: string; offerReset?: boolean }
   | { ok: string }
   | null;
 
@@ -47,12 +47,13 @@ export async function signIn(_prev: AuthState, formData: FormData): Promise<Auth
 
   // Supabase answers the same way whether the account is missing or the
   // password is wrong -- otherwise this form becomes a way to discover who
-  // has an account here. So we cannot say which it is; we offer both routes
-  // and let the sign-up attempt settle it.
+  // has an account here. So the message cannot say which it is; Create
+  // account and Forgot your password sit beside the button for both cases.
   if (message.includes('invalid login credentials')) {
     return {
-      error: 'We could not sign you in with that email and password.',
-      unmatched: true,
+      error:
+        'We could not sign you in with that email and password. If you have not ' +
+        'used this before, create an account. If you have, reset your password.',
     };
   }
 

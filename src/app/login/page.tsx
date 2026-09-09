@@ -16,7 +16,6 @@ export default function LoginPage() {
   const [upState, upAction, upPending] = useActionState(createAccount, null);
   const [rsState, rsAction, rsPending] = useActionState(sendPasswordReset, null);
 
-  const unmatched = inState && 'error' in inState && inState.unmatched;
   const offerReset = upState && 'error' in upState && upState.offerReset;
 
   /* ------------------------------------------------------------- reset -- */
@@ -167,31 +166,15 @@ export default function LoginPage() {
 
         <div className="row">
           <button disabled={inPending}>{inPending ? 'Signing in…' : 'Sign in'}</button>
+          <button type="button" className="ghost" onClick={() => setMode('create')}>
+            Create account
+          </button>
           <button type="button" className="ghost" onClick={() => setMode('reset')}>
             Forgot your password?
           </button>
         </div>
       </form>
 
-      {/* Only after a failed attempt, because until then we have no reason to
-          think they need an account -- and cannot tell if they do. */}
-      {unmatched && (
-        <div className="aside-card">
-          <h3>No account yet?</h3>
-          <p className="muted small">
-            If you have never signed in here, create an account with that email. If you
-            have, the password was wrong &mdash; reset it instead.
-          </p>
-          <div className="row">
-            <button className="tiny" onClick={() => setMode('create')}>
-              Create an account
-            </button>
-            <button className="ghost tiny" onClick={() => setMode('reset')}>
-              Reset my password
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="aside-card">
         <h3>Not a student or employee?</h3>
