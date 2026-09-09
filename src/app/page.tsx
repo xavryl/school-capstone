@@ -65,16 +65,6 @@ export default function Home() {
         </ol>
       </section>
 
-      <section className="stack reveal" style={{ '--d': '300ms' } as React.CSSProperties}>
-        <h2>Lobby displays</h2>
-        <p className="muted">
-          Open one of these full-screen on the television in the lobby. It reconnects on
-          its own and keeps showing the last called number if the connection drops.
-        </p>
-        <div className="row">
-          <Link href="/display" className="btn ghost">Set up a queue screen</Link>
-        </div>
-      </section>
     </main>
   );
 }

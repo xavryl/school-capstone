@@ -742,13 +742,3 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   font-size: .96rem; color: var(--muted); line-height: 1.5;
 }
 .ticklist svg { width: 1.05rem; height: 1.05rem; color: var(--good); flex: none; margin-top: .26rem; }
-
-/* Numbered setup steps in a guidance column. */
-.numlist { margin: 0; padding-left: 1.35rem; display: grid; gap: .5rem; list-style: decimal; }
-.numlist li::marker { color: var(--accent); font-weight: 700; }
-.numlist li { font-size: .96rem; color: var(--muted); line-height: 1.5; }
-kbd {
-  font-family: var(--f-mono); font-size: .85em; background: var(--surface);
-  border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px;
-  padding: .05em .4em; color: var(--ink);
-}

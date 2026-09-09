@@ -12,7 +12,8 @@ export default function DisplayClient({
   dept, initial,
 }: { dept: Department; initial: QueueSnapshot | null }) {
   const [snap, setSnap] = useState<QueueSnapshot | null>(initial);
-  const [lastOk, setLastOk] = useState<number>(Date.now());
+  const lastOkRef = useRef<number>(0);
+  const [health, setHealth] = useState<'' | 'stale' | 'dead'>('');
   const [clock, setClock] = useState('');
   const spoken = useRef<Set<string>>(new Set());
 
@@ -51,7 +52,7 @@ export default function DisplayClient({
       if (error || !data) return;
       const next = data as QueueSnapshot;
       setSnap(next);
-      setLastOk(Date.now());
+      lastOkRef.current = Date.now();
       if (announceNew) next.serving.forEach((s) => announce(s.number, s.window));
     }
 
@@ -73,16 +74,20 @@ export default function DisplayClient({
     return () => { clearInterval(poll); supabase.removeChannel(channel); };
   }, [dept]);
 
+  // Clock and health tick together. Deriving health from Date.now() during
+  // render made it depend on whenever React happened to re-render, so the
+  // status dot could disagree with itself between paints.
   useEffect(() => {
-    const t = setInterval(
-      () => setClock(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
-      1000,
-    );
+    const tick = () => {
+      setClock(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      const age = Date.now() - lastOkRef.current;
+      setHealth(age < STALE_MS ? '' : age < STALE_MS * 4 ? 'stale' : 'dead');
+    };
+    tick();
+    const t = setInterval(tick, 1000);
     return () => clearInterval(t);
   }, []);
 
-  const age = Date.now() - lastOk;
-  const health = age < STALE_MS ? '' : age < STALE_MS * 4 ? 'stale' : 'dead';
   const serving = snap?.serving ?? [];
   const waiting = snap?.waiting ?? [];
 

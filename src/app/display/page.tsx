@@ -10,8 +10,8 @@ export default function DisplayChooser() {
         <span className="eyebrow">Lobby screen</span>
         <h1>Queue display</h1>
         <p className="lede" style={{ maxWidth: '38rem' }}>
-          The screen for the television in the lobby. It shows who is being served, at
-          which window, and who is next. No sign-in needed — open it and leave it running.
+          The same screen as the television in the lobby: who is being served, at which
+          window, and who is next. Watch it from here if you have stepped out.
         </p>
       </header>
 
@@ -40,31 +40,32 @@ export default function DisplayChooser() {
 
         <aside className="stack">
           <div className="aside-card">
-            <h3>Setting up the television</h3>
-            <ol className="numlist">
-              <li>Open the office&rsquo;s screen in a browser on the TV or the computer driving it.</li>
-              <li>Press <kbd>F11</kbd> for full screen.</li>
-              <li>Turn the volume up if you want numbers announced aloud.</li>
-              <li>Leave it. It does not need anyone signed in.</li>
-            </ol>
-          </div>
-
-          <div className="aside-card">
-            <h3>It looks after itself</h3>
+            <h3>What you will see</h3>
             <ul className="ticklist">
-              <li><Tick />Updates the moment staff call a number</li>
-              <li><Tick />Re-checks every ten seconds in case the connection drops silently</li>
-              <li><Tick />Keeps showing the last called number if the internet goes down</li>
-              <li><Tick />A dot at the bottom shows live, reconnecting, or offline</li>
+              <li><Tick />The number being served right now</li>
+              <li><Tick />Which window to go to</li>
+              <li><Tick />The next few numbers in line</li>
+              <li><Tick />Notices from the office, such as an early closing</li>
             </ul>
           </div>
 
           <div className="aside-card">
-            <h3>Announcements</h3>
+            <h3>It keeps itself up to date</h3>
             <p className="muted small">
-              Staff can post a notice to the screen from the console — closing early,
-              a window shut for lunch. It appears under the numbers until they clear it.
+              The screen changes the moment staff call a number, and checks again every
+              few seconds on its own. If the connection drops it holds the last number
+              rather than going blank &mdash; a dot at the bottom tells you whether it is
+              live.
             </p>
+          </div>
+
+          <div className="aside-card">
+            <h3>Waiting for your turn?</h3>
+            <p className="muted small">
+              Your own page shows how many people are ahead of you, so you do not have to
+              watch the screen at all.
+            </p>
+            <Link className="btn ghost tiny" href="/queue">Check your position</Link>
           </div>
         </aside>
       </div>
