@@ -180,9 +180,12 @@ export function TrendLines({
   aLabel: string;
   bLabel: string;
 }) {
-  const W = 460;
-  const H = 170;
-  const PAD = { top: 14, right: 10, bottom: 26, left: 28 };
+  // Wide on purpose. The card runs the width of the page, and an SVG scales
+  // its whole coordinate system: a narrow viewBox here would render 400px tall
+  // with the axis labels blown up to match.
+  const W = 960;
+  const H = 260;
+  const PAD = { top: 18, right: 14, bottom: 34, left: 40 };
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
 
@@ -212,8 +215,8 @@ export function TrendLines({
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--line-soft)" />
             <text
-              x={PAD.left - 6} y={y(t) + 4} textAnchor="end"
-              fill="var(--faint)" fontSize="10" fontFamily="var(--f-mono)"
+              x={PAD.left - 8} y={y(t) + 5} textAnchor="end"
+              fill="var(--faint)" fontSize="13" fontFamily="var(--f-mono)"
             >
               {t}
             </text>
@@ -222,23 +225,23 @@ export function TrendLines({
 
         {rows.length > 1 && <path d={area} fill="var(--accent-soft)" opacity=".7" />}
         {rows.length > 1 && (
-          <path d={path('a')} fill="none" stroke="var(--accent)" strokeWidth="2.5"
+          <path d={path('a')} fill="none" stroke="var(--accent)" strokeWidth="3"
                 strokeLinejoin="round" strokeLinecap="round" />
         )}
         {rows.length > 1 && (
-          <path d={path('b')} fill="none" stroke="var(--signal)" strokeWidth="2.5"
-                strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round" />
+          <path d={path('b')} fill="none" stroke="var(--signal)" strokeWidth="3"
+                strokeDasharray="7 5" strokeLinejoin="round" strokeLinecap="round" />
         )}
 
         {rows.map((r, i) => (
           <g key={r.day}>
-            <circle cx={x(i)} cy={y(r.a)} r="2.6" fill="var(--accent)">
+            <circle cx={x(i)} cy={y(r.a)} r="3.4" fill="var(--accent)">
               <title>{`${r.day}: ${r.a} ${aLabel.toLowerCase()}, ${r.b} ${bLabel.toLowerCase()}`}</title>
             </circle>
             {i % Math.max(1, Math.ceil(rows.length / 5)) === 0 && (
               <text
-                x={x(i)} y={H - 8} textAnchor="middle"
-                fill="var(--faint)" fontSize="10" fontFamily="var(--f-mono)"
+                x={x(i)} y={H - 10} textAnchor="middle"
+                fill="var(--faint)" fontSize="13" fontFamily="var(--f-mono)"
               >
                 {r.day.slice(5)}
               </text>

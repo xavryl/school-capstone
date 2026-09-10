@@ -916,7 +916,7 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   }
   .console-panel { flex: 1; }
   .console-burger { display: none; }
-  .console-main { padding: 1.8rem 1.8rem 4rem; max-width: 74rem; }
+  .console-main { padding: 1.8rem 1.8rem 4rem; max-width: 120rem; }
   .console-sheet { padding: 2.2rem 2rem 3rem; }
 }
 
@@ -999,6 +999,10 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 @media (min-width: 62rem) {
   .mail { grid-template-columns: minmax(0, 21rem) minmax(0, 1fr); }
   .maillist { max-height: 34rem; overflow-y: auto; }
+}
+@media (min-width: 90rem) {
+  .mail { grid-template-columns: minmax(0, 26rem) minmax(0, 1fr); }
+  .maillist { max-height: 44rem; }
 }
 
 .maillist {
@@ -1093,26 +1097,31 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 
 /* The console pages stop stretching a single card the width of the screen:
    past this, a line of text is too long to scan and the page is mostly air. */
-.console-sheet .card { max-width: 46rem; }
-.console-sheet .grid2 > .card,
-.console-sheet .mail .card { max-width: none; }
+/* Width is for laying things out side by side, not for stretching a line of
+   text: a card may be as wide as the screen, the prose inside it may not. The
+   cap is on the paragraph, so the card is free to hold a table or a chart at
+   full width. */
+.console-sheet p,
+.console-sheet .lede,
+.console-sheet .mini-detail,
+.console-sheet .mailsnip { max-width: 68ch; }
+.console-sheet .mailbody { max-width: 78ch; }
+
 @media (min-width: 62rem) {
   .console-sheet .grid2 { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
 }
-.console-sheet .scroller table { max-width: 60rem; }
 
 /* ------------------------------------------------------------- charts -- */
 /* Small multiples rather than one big graph: three questions -- how is the
    queue now, when do people arrive, how has the fortnight gone -- each
    answered in its own card, side by side where there is room. */
-.charts {
-  display: grid; gap: 1rem; grid-template-columns: 1fr;
-}
-@media (min-width: 52rem) {
-  .charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .charts .wide { grid-column: 1 / -1; }
-}
-.chart-card { max-width: none; gap: .7rem; }
+/* Flex, not grid: a grid row that does not divide evenly leaves a hole the
+   width of a card, and there is no way to tell the last row to spread. Flex
+   lets whatever is on the final row grow into the space instead. */
+.charts { display: flex; flex-wrap: wrap; gap: 1rem; align-items: stretch; }
+.chart-card { flex: 1 1 22rem; min-width: 0; }
+.charts .wide { flex-basis: 100%; }
+.chart-card { gap: .7rem; }
 .chart-card h3 { font-size: 1.02rem; }
 
 .chart-ring { display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap; }
@@ -1185,3 +1194,13 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 .mini-form textarea { resize: vertical; }
 .mini-form .row { gap: .4rem; }
 .mini-msg { margin: 0; font-size: .82rem; }
+
+/* --------------------------------------------------- queue, two columns -- */
+/* Calling is the main act and takes the wider column. The walk-in pad and the
+   lobby banner are what you reach for between calls, so they sit beside it
+   instead of pushing the queue lists off the bottom of the screen. */
+.queue-top { display: grid; gap: 1rem; grid-template-columns: 1fr; align-items: start; }
+.queue-aside { display: flex; flex-direction: column; gap: 1rem; }
+@media (min-width: 68rem) {
+  .queue-top { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.2rem; }
+}

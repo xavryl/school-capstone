@@ -76,7 +76,11 @@ export default function QueueConsole({
 
   return (
     <div className="stack">
-      <div className="card stack callcard">
+      {/* Calling is the main act, so it takes the larger column; the two
+          things you reach for between calls sit beside it rather than pushing
+          the queue lists further down the page. */}
+      <div className="queue-top">
+        <div className="card stack callcard">
         <div className="row" style={{ alignItems: 'flex-end' }}>
           <label className="field" style={{ minWidth: '10rem' }}>
             <span className="label">Your window</span>
@@ -136,21 +140,9 @@ export default function QueueConsole({
             ? `Calling marks ${mine.number} completed, brings ${next ? next.number : 'the next ticket'} to ${myWindow?.label ?? 'your window'}, and announces it on the lobby screen.`
             : 'Calling brings the longest-waiting ticket to your window and announces it on the lobby screen.'}
         </p>
-      </div>
+        </div>
 
-      <section className="stack" style={{ gap: '.7rem' }}>
-        <h3 className="section-note">On you at this window</h3>
-        <MyWork
-          requests={myRequests}
-          inquiries={myInquiries}
-          appointments={appointments}
-          windowId={windowId}
-          windowLabel={myWindow?.label ?? 'this window'}
-          deptQuery={deptQuery}
-        />
-      </section>
-
-      <div className="grid2">
+        <div className="queue-aside">
         <div className="card stack">
           <span className="label">Walk-in without an account</span>
           <label className="field">
@@ -200,7 +192,20 @@ export default function QueueConsole({
             </button>
           </div>
         </div>
+        </div>
       </div>
+
+      <section className="stack" style={{ gap: '.7rem' }}>
+        <h3 className="section-note">On you at this window</h3>
+        <MyWork
+          requests={myRequests}
+          inquiries={myInquiries}
+          appointments={appointments}
+          windowId={windowId}
+          windowLabel={myWindow?.label ?? 'this window'}
+          deptQuery={deptQuery}
+        />
+      </section>
 
       <div className="grid2">
         <div className="card stack">

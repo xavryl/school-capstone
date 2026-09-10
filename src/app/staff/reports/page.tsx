@@ -369,7 +369,7 @@ export default async function ReportsPage({ searchParams }: Props) {
             </p>
           </div>
 
-          <div className="card chart-card wide">
+          <div className="card chart-card">
             <h3>What was asked for</h3>
             {topServices.length === 0 ? (
               <p className="muted">No requests were filed in this period.</p>
