@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import type { Department, Service } from '@/lib/types';
 import QueueTicket from './QueueTicket';
+import GuestTicket from './GuestTicket';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,28 +25,20 @@ export default async function QueuePage({ searchParams }: Props) {
         <span className="eyebrow">Walk-in queue</span>
         <h1>Take a number</h1>
         <p className="lede" style={{ maxWidth: '38rem' }}>
-          For when you are already on campus. Numbers reset every morning and run
-          separately for the registrar and the treasury.
+          For when you are already on campus. No account needed &mdash; numbers reset
+          every morning and run separately for the registrar and the treasury.
         </p>
       </header>
 
       <div className="page-grid">
         <div className="stack">
+          {/* Signing in is worth something here -- the number follows you between
+              devices and the office can notify you -- but it is not a toll gate.
+              Somebody who has walked in gets a number either way. */}
           {user ? (
             <QueueTicket services={(services ?? []) as Service[]} initialDept={initialDept} />
           ) : (
-            <div className="card stack">
-              <h2>Sign in to take a number</h2>
-              <p className="muted">
-                Queue numbers are tied to your account so we can tell you when your turn
-                is close. Walking in without an account? The counter staff will issue you
-                one at the window.
-              </p>
-              <div className="row">
-                <Link className="btn" href="/login">Sign in</Link>
-                <Link className="btn ghost" href="/display/registrar">See the lobby screen</Link>
-              </div>
-            </div>
+            <GuestTicket services={(services ?? []) as Service[]} initialDept={initialDept} />
           )}
         </div>
 
