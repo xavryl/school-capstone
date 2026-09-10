@@ -24,18 +24,20 @@ export default async function NavBar() {
 
     if (user) {
       email = user.email ?? null;
-      const [{ count }, { data: staffRow }] = await Promise.all([
+      // All three together. They were two round trips, and from a function on
+      // another continent each one is a quarter of a second of nothing.
+      const [{ count }, { data: staffRow }, { data: prof }] = await Promise.all([
         supabase
           .from('notifications')
           .select('id', { count: 'exact', head: true })
           .is('read_at', null),
         supabase.from('staff').select('user_id').eq('user_id', user.id).maybeSingle(),
+        supabase
+          .from('profiles').select('full_name, avatar_path').eq('id', user.id).maybeSingle(),
       ]);
+
       unread = count ?? 0;
       isStaff = Boolean(staffRow);
-
-      const { data: prof } = await supabase
-        .from('profiles').select('full_name, avatar_path').eq('id', user.id).maybeSingle();
       fullName = prof?.full_name ?? null;
       avatarUrl = mediaUrl(prof?.avatar_path);
     }

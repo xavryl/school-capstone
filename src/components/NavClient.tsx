@@ -21,6 +21,14 @@ export type NavProps = {
  * picker on the home page, so listing them here as well made the bar long
  * without adding a route anyone could not already reach in one tap.
  */
+/* prefetch={false} on everything below.
+ *
+ * Next prefetches a <Link> as it enters the viewport. For a static route that
+ * is cheap; every route here is force-dynamic, so each prefetch is a full
+ * server render -- session lookup, profile, unread count, the page's own
+ * queries -- against a database on another continent. One navigation was
+ * firing fourteen of them, and the click you actually made queued behind the
+ * lot. They are fetched on click instead. */
 const PUBLIC_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/inquiry', label: 'Guest inquiry' },
@@ -84,6 +92,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
           {PUBLIC_LINKS.map((l) => (
             <Link
               key={l.href}
+              prefetch={false}
               href={l.href}
               className={`nav-link${isActive(l.href) ? ' active' : ''}`}
               aria-current={isActive(l.href) ? 'page' : undefined}
@@ -94,6 +103,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
 
           {isStaff && (
             <Link
+              prefetch={false}
               href="/staff"
               className={`nav-link staff${isActive('/staff') ? ' active' : ''}`}
               aria-current={isActive('/staff') ? 'page' : undefined}
@@ -106,6 +116,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
               off-screen on a phone. */}
           {email && (
             <Link
+              prefetch={false}
               href="/notifications"
               className={`nav-link mobile-only${isActive('/notifications') ? ' active' : ''}`}
             >
@@ -114,6 +125,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
           )}
           {email && (
             <Link
+              prefetch={false}
               href="/profile"
               className={`nav-link mobile-only${isActive('/profile') ? ' active' : ''}`}
             >
@@ -133,6 +145,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
           {email ? (
             <>
               <Link
+                prefetch={false}
                 href="/notifications"
                 className={`nav-link desktop-only${isActive('/notifications') ? ' active' : ''}`}
                 title="Notifications"
@@ -141,6 +154,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
                 {unread > 0 && <span className="badge">{unread}</span>}
               </Link>
               <Link
+                prefetch={false}
                 href="/profile"
                 className="avatar"
                 title={`Signed in as ${fullName || toDisplayName(email)}`}
@@ -158,7 +172,7 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
               </form>
             </>
           ) : (
-            <Link href="/login" className="btn tiny">
+            <Link href="/login" prefetch={false} className="btn tiny">
               Sign in
             </Link>
           )}

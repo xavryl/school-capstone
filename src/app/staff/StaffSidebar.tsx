@@ -80,6 +80,7 @@ export default function StaffSidebar({
   const tab = (href: string, label: string, exact?: boolean) => (
     <Link
       key={href}
+      prefetch={false}
       href={withScope(href)}
       className={`staff-tab${active(href, exact) ? ' on' : ''}`}
       aria-current={active(href, exact) ? 'page' : undefined}
@@ -114,7 +115,7 @@ export default function StaffSidebar({
       </div>
 
       <div className="console-panel">
-        <Link href="/profile" className="console-me" onClick={close}>
+        <Link href="/profile" prefetch={false} className="console-me" onClick={close}>
           <span className="avatar" aria-hidden="true">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -136,6 +137,7 @@ export default function StaffSidebar({
               {SCOPES.map((s) => (
                 <Link
                   key={s.id}
+                  prefetch={false}
                   href={withScope(pathname, s.id)}
                   className={`scope-btn${scope === s.id ? ' on' : ''}`}
                 >
@@ -163,6 +165,7 @@ export default function StaffSidebar({
           {/* onClick on the links, not the row: toggling the theme should not
               shut the drawer you are still using. */}
           <Link
+            prefetch={false}
             href="/notifications"
             className={`staff-tab${active('/notifications') ? ' on' : ''}`}
             onClick={close}
@@ -170,7 +173,7 @@ export default function StaffSidebar({
             Updates
             {unread > 0 && <span className="badge">{unread}</span>}
           </Link>
-          <Link href="/" className="staff-tab" onClick={close}>Public site</Link>
+          <Link href="/" prefetch={false} className="staff-tab" onClick={close}>Public site</Link>
 
           <div className="console-foot-row">
             <ThemeToggle />

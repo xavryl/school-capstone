@@ -68,7 +68,9 @@ export default function BackBar() {
 
         <span className="backbar-title">{titleFor(pathname)}</span>
 
-        <Link href="/" className="home-btn">
+        <Link
+        prefetch={false}
+        href="/" className="home-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
                strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M3 11l9-8 9 8" />

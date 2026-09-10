@@ -128,7 +128,7 @@ export default function DepartmentPicker() {
               </div>
               <p className="bubble-foot">
                 Not a student or employee?{' '}
-                <Link href="/inquiry">Send a guest inquiry</Link>
+                <Link prefetch={false} href="/inquiry">Send a guest inquiry</Link>
               </p>
             </div>
           ) : (
@@ -143,7 +143,7 @@ export default function DepartmentPicker() {
               <p className="bubble-q">What do you need from the {chosen.name.toLowerCase()}?</p>
               <div className="bubble-grid">
                 {ACTIONS.map((a) => (
-                  <Link key={a.title} href={a.href(chosen.id)} className="choice">
+                  <Link key={a.title} prefetch={false} href={a.href(chosen.id)} className="choice">
                     <span className="choice-text">
                       <strong>{a.title}</strong>
                       <small>{a.blurb}</small>

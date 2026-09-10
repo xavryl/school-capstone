@@ -29,7 +29,7 @@ export default function Home() {
 
       <section className="stack">
         <h2>Not a student or employee?</h2>
-        <Link href="/inquiry" className="card">
+        <Link prefetch={false} href="/inquiry" className="card">
           <h3>Send a guest inquiry</h3>
           <p className="muted">
             No account needed. Ask the registrar or the treasury a question and you will
