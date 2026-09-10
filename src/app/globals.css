@@ -939,25 +939,6 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   .svc-bar { display: none; }
 }
 
-/* --------------------------------------------------------- inbox tickets -- */
-/* A ticket is deliberately close to an email row: the identifying line first,
-   then the subject, then just enough of the message to decide without opening
-   it. Anything longer belongs on the Requests or Inquiries page. */
-.ticket {
-  display: flex; flex-direction: column; gap: .55rem;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-  padding: 1rem 1.1rem;
-  transition: border-color .18s ease, box-shadow .18s ease;
-}
-.ticket:hover { border-color: var(--accent); box-shadow: var(--shadow); }
-.ticket-head {
-  display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;
-}
-.ticket-ref { font-size: .88rem; color: var(--muted); }
-.ticket-title { font-size: 1.04rem; line-height: 1.4; }
-.ticket-detail { margin: 0; font-size: .96rem; line-height: 1.55; }
-.ticket .row { gap: .5rem; flex-wrap: wrap; align-items: center; }
-
 /* ---------------------------------------------------------- live badge -- */
 /* Small on purpose. It answers one question -- am I looking at now? -- and
    is not meant to compete with the heading beside it. */
@@ -978,3 +959,140 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
   0%, 100% { opacity: 1; transform: scale(1); }
   50%      { opacity: .35; transform: scale(.82); }
 }
+
+/* ===========================================================================
+   The inbox, read like mail. A list you scan down and one message open beside
+   it, rather than a column of full-width cards you have to scroll past. The
+   coloured dot is the load-bearing part: green nobody has taken it, yellow
+   somebody is on it, red it is finished.
+   =========================================================================== */
+.dot {
+  width: .7rem; height: .7rem; border-radius: 50%; flex: none;
+  border: 2px solid transparent;
+}
+.dot.open     { background: var(--good);   box-shadow: 0 0 0 3px var(--good-soft); }
+.dot.catering { background: var(--signal); box-shadow: 0 0 0 3px var(--signal-soft); }
+.dot.catered  { background: var(--bad);    box-shadow: 0 0 0 3px var(--bad-soft); }
+
+.mailbar { display: flex; gap: .35rem; flex-wrap: wrap; }
+.mailfilter {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: transparent; color: var(--muted);
+  border: 2px solid var(--line); border-radius: 999px;
+  padding: .35rem .8rem; font-size: .92rem; font-weight: 600;
+  min-height: 0; box-shadow: none;
+}
+.mailfilter:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+.mailfilter.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.mailcount {
+  font-size: .8rem; font-variant-numeric: tabular-nums; opacity: .8;
+}
+
+.mail {
+  display: grid; grid-template-columns: 1fr; gap: 1rem;
+  align-items: start;
+}
+@media (min-width: 62rem) {
+  .mail { grid-template-columns: minmax(0, 21rem) minmax(0, 1fr); }
+  .maillist { max-height: 34rem; overflow-y: auto; }
+}
+
+.maillist {
+  list-style: none; margin: 0; padding: 0;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  background: var(--surface);
+}
+.maillist > li + li { border-top: 1px solid var(--line-soft); }
+.mailempty { padding: 1.1rem; }
+
+.mailrow {
+  display: flex; align-items: flex-start; gap: .6rem; width: 100%; text-align: left;
+  background: transparent; color: var(--ink); border: 0; border-radius: 0;
+  border-left: 3px solid transparent;
+  padding: .7rem .8rem; min-height: 0; box-shadow: none; font-weight: 400;
+}
+.mailrow:hover { background: var(--sunk); }
+.mailrow.on { background: var(--accent-soft); border-left-color: var(--accent); }
+.mailrow.done .mailfrom, .mailrow.done .mailsub { font-weight: 500; opacity: .75; }
+.mailrow .dot { margin-top: .35rem; }
+
+.mailavatar {
+  width: 2rem; height: 2rem; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--sunk); border: 1px solid var(--line);
+  font-size: .78rem; font-weight: 700; color: var(--muted);
+}
+.mailavatar.big { width: 2.6rem; height: 2.6rem; font-size: .92rem; }
+
+.mailtext { display: flex; flex-direction: column; gap: .12rem; min-width: 0; flex: 1; }
+.mailtop { display: flex; align-items: baseline; gap: .5rem; }
+.mailfrom {
+  font-size: .95rem; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.mailwhen { margin-left: auto; font-size: .8rem; color: var(--faint); flex: none; }
+.mailsub {
+  font-size: .93rem; font-weight: 600; line-height: 1.35;
+  display: flex; align-items: center; gap: .35rem; flex-wrap: wrap;
+}
+.mailsnip {
+  font-size: .87rem; color: var(--muted); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tag {
+  font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  border: 1px solid var(--line); border-radius: 5px; padding: .05rem .3rem;
+  color: var(--faint); flex: none;
+}
+.tag.request { border-color: var(--accent); color: var(--accent); }
+.tag.inquiry { border-color: var(--signal); color: var(--signal); }
+
+.mailread {
+  border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface); padding: 1.2rem 1.3rem;
+}
+.mailmeta { display: flex; align-items: center; gap: .7rem; }
+.mailbody {
+  margin: 0; white-space: pre-wrap; line-height: 1.6;
+  border-top: 1px solid var(--line-soft); padding-top: .9rem;
+}
+.statusline {
+  margin: 0; font-size: .93rem; font-weight: 600;
+  border-left: 3px solid var(--line); padding-left: .7rem;
+}
+.statusline.open     { border-left-color: var(--good);   color: var(--good); }
+.statusline.catering { border-left-color: var(--signal); color: var(--signal); }
+.statusline.catered  { border-left-color: var(--bad);    color: var(--bad); }
+
+/* ------------------------------------------------------- calling a queue -- */
+/* "Call next" never said next who. The number and the service are on the
+   button itself now, so nobody calls a stranger by accident. */
+.callcard { gap: 1rem; }
+.callgrid {
+  display: grid; gap: .8rem; grid-template-columns: 1fr;
+}
+@media (min-width: 34rem) { .callgrid { grid-template-columns: 1fr 1fr; } }
+.callnow, .callnext {
+  display: flex; flex-direction: column; gap: .15rem;
+  background: var(--sunk); border: 1px solid var(--line);
+  border-radius: 10px; padding: .8rem .9rem;
+}
+.callnext { border-color: var(--accent); }
+.bignum {
+  font-family: var(--f-mono); font-size: 1.7rem; line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.callnext .bignum { color: var(--accent); }
+.callbtn { width: 100%; font-size: 1.05rem; }
+
+/* The console pages stop stretching a single card the width of the screen:
+   past this, a line of text is too long to scan and the page is mostly air. */
+.console-sheet .card { max-width: 46rem; }
+.console-sheet .grid2 > .card,
+.console-sheet .mail .card { max-width: none; }
+@media (min-width: 62rem) {
+  .console-sheet .grid2 { grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+}
+.console-sheet .scroller table { max-width: 60rem; }

@@ -51,6 +51,7 @@ export type QueueTicket = {
   id: string;
   number: string;
   department: Department;
+  service_id: number | null;
   window_id: number | null;
   state: QueueState;
   created_at: string;
