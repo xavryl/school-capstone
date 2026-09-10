@@ -25,6 +25,8 @@ export const STATUS_LABEL: Record<string, string> = {
   assigned: 'Assigned',
   responded: 'Responded',
   closed: 'Closed',
+  booked: 'Booked',
+  attended: 'Attended',
 };
 
 export const DEPARTMENTS: { id: Department; name: string; blurb: string }[] = [

@@ -1151,3 +1151,37 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 .details[open] > summary { border-bottom: 1px solid var(--line-soft); margin-bottom: .8rem; }
 .details .scroller { padding-bottom: .8rem; }
+
+/* --------------------------------------------- the counter's own work -- */
+/* Small panels on the queue screen for what you personally took on. Each
+   entry ends in the smallest form that finishes it, so nobody walks away
+   from the window to a different tab with somebody standing there. */
+.section-note {
+  font-size: .82rem; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--faint); margin: 0;
+}
+
+.minilist {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: .6rem;
+  max-height: 22rem; overflow-y: auto;
+}
+.mini {
+  display: flex; flex-direction: column; gap: .3rem;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--sunk); padding: .6rem .7rem;
+}
+.mini-head { display: flex; align-items: center; gap: .4rem; }
+.mini-title { font-size: .96rem; line-height: 1.35; }
+.mini-detail {
+  margin: 0; font-size: .85rem; line-height: 1.45;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.mini-form { display: flex; flex-direction: column; gap: .4rem; margin-top: .2rem; }
+.mini-form select,
+.mini-form input,
+.mini-form textarea { font-size: .92rem; min-height: 0; padding: .45rem .6rem; }
+.mini-form textarea { resize: vertical; }
+.mini-form .row { gap: .4rem; }
+.mini-msg { margin: 0; font-size: .82rem; }

@@ -8,6 +8,11 @@ import {
   postAnnouncement,
 } from './actions';
 import type { Department, QueueTicket, Service, ServiceWindow } from '@/lib/types';
+import MyWork, {
+  type MyRequest,
+  type MyInquiry,
+  type WindowAppointment,
+} from './MyWork';
 
 const waited = (iso: string) => {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -23,12 +28,20 @@ export default function QueueConsole({
   tickets,
   services,
   announcement,
+  myRequests,
+  myInquiries,
+  appointments,
+  deptQuery,
 }: {
   dept: Department;
   windows: ServiceWindow[];
   tickets: QueueTicket[];
   services: Service[];
   announcement: string;
+  myRequests: MyRequest[];
+  myInquiries: MyInquiry[];
+  appointments: WindowAppointment[];
+  deptQuery: string;
 }) {
   const [windowId, setWindowId] = useState<number | undefined>(windows[0]?.id);
   const [walkInService, setWalkInService] = useState<string>('');
@@ -124,6 +137,18 @@ export default function QueueConsole({
             : 'Calling brings the longest-waiting ticket to your window and announces it on the lobby screen.'}
         </p>
       </div>
+
+      <section className="stack" style={{ gap: '.7rem' }}>
+        <h3 className="section-note">On you at this window</h3>
+        <MyWork
+          requests={myRequests}
+          inquiries={myInquiries}
+          appointments={appointments}
+          windowId={windowId}
+          windowLabel={myWindow?.label ?? 'this window'}
+          deptQuery={deptQuery}
+        />
+      </section>
 
       <div className="grid2">
         <div className="card stack">
