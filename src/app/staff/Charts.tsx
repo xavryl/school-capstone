@@ -164,21 +164,29 @@ export function HourBars({
   );
 }
 
-export type TrendRow = { day: string; filed: number; tickets: number };
+export type TrendRow = { day: string; a: number; b: number };
 
 /**
- * A fortnight of work, two lines. Requests filed is the paperwork side,
- * queue numbers the counter side, and seeing them together is how you tell a
- * busy week from a week where everything arrived online.
+ * Two series a day apart, one filled and one dashed. Whatever the pair, the
+ * point is the same: a single line tells you a total went up, and two tell you
+ * whether the office kept pace with it.
  */
-export function TrendLines({ rows }: { rows: TrendRow[] }) {
+export function TrendLines({
+  rows,
+  aLabel,
+  bLabel,
+}: {
+  rows: TrendRow[];
+  aLabel: string;
+  bLabel: string;
+}) {
   const W = 460;
   const H = 170;
   const PAD = { top: 14, right: 10, bottom: 26, left: 28 };
   const plotW = W - PAD.left - PAD.right;
   const plotH = H - PAD.top - PAD.bottom;
 
-  const max = Math.max(1, ...rows.flatMap((r) => [r.filed, r.tickets]));
+  const max = Math.max(1, ...rows.flatMap((r) => [r.a, r.b]));
   const step = max <= 5 ? 1 : max <= 20 ? 5 : max <= 50 ? 10 : 25;
   const top = Math.ceil(max / step) * step;
 
@@ -186,12 +194,12 @@ export function TrendLines({ rows }: { rows: TrendRow[] }) {
     PAD.left + (rows.length <= 1 ? plotW / 2 : (i / (rows.length - 1)) * plotW);
   const y = (v: number) => PAD.top + plotH - (v / top) * plotH;
 
-  const path = (key: 'filed' | 'tickets') =>
+  const path = (key: 'a' | 'b') =>
     rows.map((r, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(r[key])}`).join(' ');
 
   const area =
     rows.length > 0
-      ? `${path('filed')} L${x(rows.length - 1)},${PAD.top + plotH} L${x(0)},${PAD.top + plotH} Z`
+      ? `${path('a')} L${x(rows.length - 1)},${PAD.top + plotH} L${x(0)},${PAD.top + plotH} Z`
       : '';
 
   const ticks = Array.from({ length: top / step + 1 }, (_, i) => i * step);
@@ -199,7 +207,7 @@ export function TrendLines({ rows }: { rows: TrendRow[] }) {
   return (
     <div className="stack" style={{ gap: '.4rem' }}>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
-           aria-label="Requests filed and queue numbers issued, per day, over the last fortnight">
+           aria-label={`${aLabel} against ${bLabel}, per day`}>
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--line-soft)" />
@@ -214,18 +222,18 @@ export function TrendLines({ rows }: { rows: TrendRow[] }) {
 
         {rows.length > 1 && <path d={area} fill="var(--accent-soft)" opacity=".7" />}
         {rows.length > 1 && (
-          <path d={path('filed')} fill="none" stroke="var(--accent)" strokeWidth="2.5"
+          <path d={path('a')} fill="none" stroke="var(--accent)" strokeWidth="2.5"
                 strokeLinejoin="round" strokeLinecap="round" />
         )}
         {rows.length > 1 && (
-          <path d={path('tickets')} fill="none" stroke="var(--signal)" strokeWidth="2.5"
+          <path d={path('b')} fill="none" stroke="var(--signal)" strokeWidth="2.5"
                 strokeDasharray="5 4" strokeLinejoin="round" strokeLinecap="round" />
         )}
 
         {rows.map((r, i) => (
           <g key={r.day}>
-            <circle cx={x(i)} cy={y(r.filed)} r="2.6" fill="var(--accent)">
-              <title>{`${r.day}: ${r.filed} filed, ${r.tickets} queue numbers`}</title>
+            <circle cx={x(i)} cy={y(r.a)} r="2.6" fill="var(--accent)">
+              <title>{`${r.day}: ${r.a} ${aLabel.toLowerCase()}, ${r.b} ${bLabel.toLowerCase()}`}</title>
             </circle>
             {i % Math.max(1, Math.ceil(rows.length / 5)) === 0 && (
               <text
@@ -247,13 +255,68 @@ export function TrendLines({ rows }: { rows: TrendRow[] }) {
       <ul className="legend row-legend">
         <li>
           <span className="legend-swatch" style={{ background: 'var(--accent)' }} aria-hidden="true" />
-          <span className="legend-label">Requests filed</span>
+          <span className="legend-label">{aLabel}</span>
         </li>
         <li>
           <span className="legend-swatch dashed" style={{ background: 'var(--signal)' }} aria-hidden="true" />
-          <span className="legend-label">Queue numbers</span>
+          <span className="legend-label">{bLabel}</span>
         </li>
       </ul>
     </div>
+  );
+}
+
+export type Bar = { label: string; value: number };
+
+/**
+ * A categorical bar chart -- weekdays, offices, anything with a short name and
+ * a count. Values sit above their bars rather than in a tooltip, because this
+ * one is usually read from across a desk.
+ */
+export function Bars({ bars, height = 150 }: { bars: Bar[]; height?: number }) {
+  const W = 420;
+  const H = height;
+  const PAD = { top: 18, right: 8, bottom: 24, left: 26 };
+  const plotW = W - PAD.left - PAD.right;
+  const plotH = H - PAD.top - PAD.bottom;
+
+  const max = Math.max(1, ...bars.map((b) => b.value));
+  const slot = plotW / Math.max(1, bars.length);
+  const barW = Math.max(8, Math.min(46, slot - 10));
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
+         aria-label={bars.map((b) => `${b.label}: ${b.value}`).join(', ')}>
+      <line
+        x1={PAD.left} x2={W - PAD.right} y1={PAD.top + plotH} y2={PAD.top + plotH}
+        stroke="var(--line)"
+      />
+      {bars.map((b, i) => {
+        const h = b.value === 0 ? 0 : Math.max(3, (b.value / max) * plotH);
+        const cx = PAD.left + slot * i + slot / 2;
+        return (
+          <g key={b.label}>
+            <rect
+              x={cx - barW / 2} y={PAD.top + plotH - h} width={barW} height={h}
+              rx="4" fill="var(--accent)"
+            />
+            {b.value > 0 && (
+              <text
+                x={cx} y={PAD.top + plotH - h - 5} textAnchor="middle"
+                fill="var(--muted)" fontSize="11" fontFamily="var(--f-mono)"
+              >
+                {b.value}
+              </text>
+            )}
+            <text
+              x={cx} y={H - 7} textAnchor="middle"
+              fill="var(--faint)" fontSize="11"
+            >
+              {b.label}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
   );
 }

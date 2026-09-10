@@ -98,9 +98,9 @@ export default async function StaffOverview({ searchParams }: Props) {
   for (const office of daily) {
     for (const r of office) {
       const key = String(r.day).slice(0, 10);
-      const row = byDay.get(key) ?? { day: key, filed: 0, tickets: 0 };
-      row.filed += Number(r.filed) || 0;
-      row.tickets += Number(r.tickets) || 0;
+      const row = byDay.get(key) ?? { day: key, a: 0, b: 0 };
+      row.a += Number(r.filed) || 0;
+      row.b += Number(r.tickets) || 0;
       byDay.set(key, row);
     }
   }
@@ -191,7 +191,7 @@ export default async function StaffOverview({ searchParams }: Props) {
 
           <div className="card chart-card wide">
             <h3>Last fortnight</h3>
-            <TrendLines rows={trend} />
+            <TrendLines rows={trend} aLabel="Requests filed" bLabel="Queue numbers" />
             <p className="muted small">
               Requests filed against queue numbers issued. Two lines because the same
               day can be quiet at the counter and busy online.
