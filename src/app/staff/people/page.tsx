@@ -75,10 +75,10 @@ export default async function StaffAccountsPage() {
         <h3>What the three levels mean</h3>
         <p className="muted small">
           <strong>Office staff</strong> work the inbox: they take concerns addressed to
-          their office and answer them. <strong>Office head</strong> is that office&rsquo;s
-          administrator — they see everything it handles, hand work to their staff and
-          pull its reports. <strong>System administrator</strong> spans both offices and
-          is the only level that can change this page.
+          their office and answer them. An <strong>office administrator</strong> runs one
+          office — the registrar administrator sees registrar work and nothing of
+          treasury&rsquo;s, and the other way round. Only a <strong>system administrator</strong>{' '}
+          sees both, and only they can change this page.
         </p>
       </div>
 

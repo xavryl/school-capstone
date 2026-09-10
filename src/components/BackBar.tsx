@@ -39,7 +39,13 @@ export default function BackBar() {
   // The home page has nowhere to go back to, and the television screens
   // themselves carry no navigation. The /display chooser is an ordinary page
   // and keeps its bar.
-  if (pathname === '/' || pathname.startsWith('/display/')) return null;
+  // The console's side panel is the navigation on /staff, so a second row of
+  // it above the page would only repeat itself.
+  if (
+    pathname === '/' ||
+    pathname.startsWith('/display/') ||
+    pathname.startsWith('/staff')
+  ) return null;
 
   return (
     <div className="backbar">

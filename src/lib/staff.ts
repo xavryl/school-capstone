@@ -87,3 +87,14 @@ export const today = () => new Date().toISOString().slice(0, 10);
 
 export const scopeLabel = (scope: Scope) =>
   scope === 'all' ? 'Both offices' : scope === 'registrar' ? 'Registrar' : 'Treasury';
+
+/**
+ * How a person is named to themselves and to colleagues. The three levels the
+ * offices actually talk about: the system administrator who spans both, each
+ * office's own administrator, and the staff who work its counter.
+ */
+export const roleTitle = (ctx: StaffContext) => {
+  if (ctx.isAdmin) return 'System administrator';
+  const office = ctx.home === 'registrar' ? 'Registrar' : 'Treasury';
+  return ctx.role === 'head' ? `${office} administrator` : `${office} staff`;
+};

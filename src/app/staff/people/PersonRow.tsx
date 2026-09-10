@@ -58,7 +58,7 @@ export default function PersonRow({ person }: { person: Person }) {
             style={{ minWidth: '9rem' }}
           >
             <option value="staff">Office staff</option>
-            <option value="head">Office head</option>
+            <option value="head">Office administrator</option>
           </select>
 
           <label className="row" style={{ gap: '.45rem', flexWrap: 'nowrap' }}>

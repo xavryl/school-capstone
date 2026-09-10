@@ -46,6 +46,10 @@ export default function NavClient({ email, unread, isStaff, avatarUrl, fullName 
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // The staff console has its own side panel and duplicates nothing from
+  // here, so this bar steps aside entirely on those routes.
+  if (pathname.startsWith('/staff')) return null;
+
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 

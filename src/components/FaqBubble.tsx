@@ -73,7 +73,9 @@ export default function FaqBubble() {
   const [query, setQuery] = useState('');
 
   // The lobby television is unattended; a help bubble on it is clutter.
-  const hidden = pathname.startsWith('/display/');
+  // Not on the lobby screens, and not in the console: the questions it
+  // answers are the public's, not a counter clerk's.
+  const hidden = pathname.startsWith('/display/') || pathname.startsWith('/staff');
 
   useEffect(() => setOpen(false), [pathname]);
 

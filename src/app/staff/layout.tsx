@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Suspense } from 'react';
-import { getStaffGate } from '@/lib/staff';
+import { createClient } from '@/lib/supabase/server';
+import { getStaffGate, roleTitle } from '@/lib/staff';
+import { mediaUrl } from '@/lib/profile';
 import StaffSidebar from './StaffSidebar';
 
 export const dynamic = 'force-dynamic';
@@ -55,23 +57,31 @@ export default async function StaffLayout({
 
   const { ctx } = gate;
 
+  // The panel replaces the public bar on these routes, so it has to carry what
+  // that bar carried: who you are, your unread count, your picture.
+  const supabase = await createClient();
+  const [{ data: profile }, { count }] = await Promise.all([
+    supabase.from('profiles').select('full_name, avatar_path').eq('id', ctx.userId).maybeSingle(),
+    supabase.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null),
+  ]);
+
   return (
-    <main className="wrap staff-shell">
-      <Suspense fallback={<aside className="staff-side" />}>
+    <div className="console">
+      <Suspense fallback={<aside className="console-side" />}>
         <StaffSidebar
           isAdmin={ctx.isAdmin}
           canManage={ctx.canManage}
-          roleLabel={
-            ctx.isAdmin
-              ? 'System administrator'
-              : ctx.role === 'head'
-                ? `${ctx.home} head`
-                : `${ctx.home} staff`
-          }
+          roleLabel={roleTitle(ctx)}
           scope={ctx.scope}
+          name={profile?.full_name ?? ''}
+          email={ctx.email}
+          avatarUrl={mediaUrl(profile?.avatar_path)}
+          unread={count ?? 0}
         />
       </Suspense>
-      <div className="staff-main">{children}</div>
-    </main>
+      <div className="console-main">
+        <div className="console-sheet">{children}</div>
+      </div>
+    </div>
   );
 }

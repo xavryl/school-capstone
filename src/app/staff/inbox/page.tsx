@@ -66,7 +66,7 @@ export default async function InboxPage({ searchParams }: Props) {
         {mine.length === 0 ? (
           <p className="muted">
             Nothing assigned to you. Take something from below, or wait for
-            {ctx.canManage ? ' work to arrive.' : ' your office head to hand you one.'}
+            {ctx.canManage ? ' work to arrive.' : ' your office administrator to hand you one.'}
           </p>
         ) : (
           mine.map((t) => (
