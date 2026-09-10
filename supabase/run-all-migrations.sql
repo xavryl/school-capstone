@@ -1306,10 +1306,10 @@ create trigger profiles_touch
 -- A head is not a system admin: the registrar's head runs the registrar and
 -- has no business in treasury records.
 
-do $ begin
+do $$ begin
   create type staff_role as enum ('staff', 'head');
 exception when duplicate_object then null;
-end $;
+end $$;
 
 alter table staff
   add column if not exists role staff_role not null default 'staff';
