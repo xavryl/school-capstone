@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { getStaffGate, today, scopeLabel } from '@/lib/staff';
+import { getStaffGate, today, daysAgo, scopeLabel } from '@/lib/staff';
 import type { Department } from '@/lib/types';
 import Live from './Live';
+import { Donut, HourBars, TrendLines, type TrendRow } from './Charts';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,53 @@ export default async function StaffOverview({ searchParams }: Props) {
   const total = (k: keyof (typeof perOffice)[number]) =>
     perOffice.reduce((sum, o) => sum + (o[k] as number), 0);
 
+  // Today's tickets in full, rather than six more count queries: the rows are
+  // one day of one office, and having them makes both the ring and the hourly
+  // shape free.
+  const todaysTickets = (
+    await Promise.all(
+      ctx.departments.map(async (d) => {
+        const { data } = await supabase
+          .from('queue_tickets')
+          .select('state, created_at')
+          .eq('department', d)
+          .eq('service_date', day);
+        return (data ?? []) as { state: string; created_at: string }[];
+      }),
+    )
+  ).flat();
+
+  const skipped = todaysTickets.filter((t) => t.state === 'skipped').length;
+
+  const hours: Record<number, number> = {};
+  for (const t of todaysTickets) {
+    const h = new Date(t.created_at).getHours();
+    hours[h] = (hours[h] ?? 0) + 1;
+  }
+
+  // A fortnight of both offices in scope, summed by day.
+  const from = daysAgo(13);
+  const daily = await Promise.all(
+    ctx.departments.map(async (d) => {
+      const { data } = await supabase.rpc('report_daily', {
+        dept: d, p_from: from, p_to: day,
+      });
+      return (data ?? []) as { day: string; filed: number; tickets: number }[];
+    }),
+  );
+
+  const byDay = new Map<string, TrendRow>();
+  for (const office of daily) {
+    for (const r of office) {
+      const key = String(r.day).slice(0, 10);
+      const row = byDay.get(key) ?? { day: key, filed: 0, tickets: 0 };
+      row.filed += Number(r.filed) || 0;
+      row.tickets += Number(r.tickets) || 0;
+      byDay.set(key, row);
+    }
+  }
+  const trend = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+
   // The service mix is the substance of the difference between the two
   // consoles: certificates and transcripts on one side, receipts and
   // assessments on the other.
@@ -109,6 +157,47 @@ export default async function StaffOverview({ searchParams }: Props) {
         <Tile label="Appointments today" value={total('appts')} />
         <Tile label="Open requests" value={total('openReq')} />
         <Tile label="Open inquiries" value={total('openInq')} />
+      </section>
+
+      <section className="stack">
+        <h2>Today, and the fortnight behind it</h2>
+        <div className="charts">
+          <div className="card chart-card">
+            <h3>Queue today</h3>
+            <Donut
+              centreLabel="numbers today"
+              slices={[
+                { label: 'Waiting', value: total('waiting'), color: 'var(--signal)' },
+                { label: 'At a window', value: total('serving'), color: 'var(--accent)' },
+                { label: 'Served', value: total('doneToday'), color: 'var(--good)' },
+                { label: 'Skipped', value: skipped, color: 'var(--bad)' },
+              ]}
+            />
+            <p className="muted small">
+              {total('waiting') === 0
+                ? 'Nobody is waiting at the moment.'
+                : `${total('waiting')} still to be called.`}
+            </p>
+          </div>
+
+          <div className="card chart-card">
+            <h3>When people arrive</h3>
+            <HourBars hours={hours} />
+            <p className="muted small">
+              Numbers issued per hour today. The rush is where you want the second
+              window open.
+            </p>
+          </div>
+
+          <div className="card chart-card wide">
+            <h3>Last fortnight</h3>
+            <TrendLines rows={trend} />
+            <p className="muted small">
+              Requests filed against queue numbers issued. Two lines because the same
+              day can be quiet at the counter and busy online.
+            </p>
+          </div>
+        </div>
       </section>
 
       {ctx.scope === 'all' && (

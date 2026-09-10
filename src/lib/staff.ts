@@ -85,6 +85,10 @@ export const getStaffGate = cache(async (deptParam?: string): Promise<StaffGate>
 /** Today, as the date column stores it. */
 export const today = () => new Date().toISOString().slice(0, 10);
 
+/** The same, n days back -- the start of a report or chart range. */
+export const daysAgo = (n: number) =>
+  new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
+
 export const scopeLabel = (scope: Scope) =>
   scope === 'all' ? 'Both offices' : scope === 'registrar' ? 'Registrar' : 'Treasury';
 
