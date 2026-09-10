@@ -769,8 +769,14 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 
 /* ------------------------------------------------- content + guidance -- */
 .page-grid {
-  display: grid; gap: 1.5rem; grid-template-columns: 1fr; align-items: start;
+  /* minmax(0, 1fr), not 1fr: a grid column sized 1fr still takes its minimum
+     from the min-content of what is in it, so one wide child -- the day strip
+     here -- drags the whole column past the page. */
+  display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); align-items: start;
 }
+/* And the children too: a grid item cannot shrink below its own min-content
+   unless told to, so it overflows the track instead of the track growing. */
+.page-grid > * { min-width: 0; }
 @media (min-width: 64rem) {
   .page-grid { grid-template-columns: minmax(0, 1.7fr) minmax(17rem, .85fr); gap: 2rem; }
 }
@@ -1204,3 +1210,68 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 @media (min-width: 68rem) {
   .queue-top { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.2rem; }
 }
+
+/* ===========================================================================
+   Booking a time. The controls sit in one panel with their labels beside
+   them, the week ahead is a strip of chips so the common case never opens a
+   date picker, and the times are a grid split morning from afternoon rather
+   than one ragged wrapping line.
+   =========================================================================== */
+/* Named bookbar, not picker: .picker is the landing page department bubble. */
+.bookbar {
+  display: flex; flex-direction: column; gap: .9rem;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 1rem 1.1rem;
+}
+.bookbar-row { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+
+/* Two offices is a choice, not a dropdown to open. */
+.segmented { display: inline-flex; gap: 0; border-radius: 9px; overflow: hidden; align-self: flex-start; }
+.seg {
+  background: var(--surface); color: var(--muted);
+  border: 2px solid var(--line); border-right-width: 1px;
+  border-radius: 0; box-shadow: none; font-size: .95rem; font-weight: 600;
+  padding: .5rem 1.1rem; min-height: 0;
+}
+.seg:first-child { border-radius: 9px 0 0 9px; }
+.seg:last-child { border-radius: 0 9px 9px 0; border-right-width: 2px; }
+.seg:hover { background: var(--sunk); color: var(--ink); }
+.seg.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.daystrip {
+  display: flex; gap: .4rem; overflow-x: auto; padding-bottom: .2rem;
+  scrollbar-width: thin; min-width: 0;
+}
+.daychip {
+  display: flex; flex-direction: column; align-items: center; gap: .05rem;
+  flex: none; min-width: 4.6rem; min-height: 0;
+  background: var(--surface); color: var(--muted);
+  border: 2px solid var(--line); border-radius: 10px;
+  padding: .45rem .6rem; box-shadow: none;
+}
+.daychip:hover { border-color: var(--accent); color: var(--accent); background: var(--surface); }
+.daychip.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.daychip-name { font-size: .92rem; font-weight: 700; }
+.daychip-date { font-size: .78rem; opacity: .85; }
+
+.slotgrid {
+  display: grid; gap: .5rem;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+}
+.slot {
+  display: flex; flex-direction: column; align-items: center; gap: .05rem;
+  min-height: 0; padding: .55rem .5rem;
+  background: var(--surface); color: var(--ink);
+  border: 2px solid var(--line); border-radius: 10px; box-shadow: none;
+}
+.slot:hover:not(:disabled) {
+  border-color: var(--accent); background: var(--accent-soft); color: var(--accent-ink);
+}
+.slot-time { font-size: 1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.slot-free { font-size: .74rem; font-weight: 600; letter-spacing: .03em; color: var(--good); }
+.slot.taken {
+  background: var(--sunk); color: var(--faint); border-style: dashed;
+  border-color: var(--line-soft); opacity: 1;
+}
+.slot.taken .slot-free { color: var(--faint); }
+.slot:disabled { cursor: not-allowed; }
