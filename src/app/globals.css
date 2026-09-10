@@ -405,9 +405,18 @@ button.attach {
 .profile-banner.empty {
   background-image: repeating-linear-gradient(135deg, var(--line-soft) 0 12px, transparent 12px 24px);
 }
-.profile-banner-actions { position: absolute; right: .7rem; bottom: .7rem; display: flex; gap: .5rem; }
+/* Top right, not bottom: the id row is pulled up over the foot of the banner
+   and now paints above it, which was leaving these half hidden behind it. */
+.profile-banner-actions {
+  position: absolute; right: .7rem; top: .7rem; z-index: 2;
+  display: flex; gap: .5rem; flex-wrap: wrap; justify-content: flex-end;
+}
 .profile-idrow {
-  display: flex; align-items: flex-end; gap: 1.1rem;
+  /* position + z-index, or the banner wins: it is position: relative and this
+     row is not, so a positioned box paints over a static one however late it
+     comes in the source -- which put the top half of the name behind it. */
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-end; gap: 1.1rem; flex-wrap: wrap;
   padding: 0 1.3rem 1.3rem; margin-top: -2.8rem;
   border: 1px solid var(--line); border-top: 0; border-radius: 0 0 10px 10px;
   background: var(--surface);
@@ -1275,3 +1284,51 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 }
 .slot.taken .slot-free { color: var(--faint); }
 .slot:disabled { cursor: not-allowed; }
+
+/* ------------------------------------------------------------- cropper -- */
+/* The frame is the shape the page will actually show, and the picture moves
+   behind it. What the frame is showing is what gets uploaded, so a phone
+   photo becomes a 512px square instead of four megabytes the browser has to
+   fetch again on every page. */
+.cropper-backdrop {
+  position: fixed; inset: 0; z-index: 90;
+  display: grid; place-items: center; padding: 1rem;
+  background: color-mix(in srgb, var(--ink) 62%, transparent);
+  backdrop-filter: blur(3px);
+  animation: fade-in .16s ease both;
+}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+.cropper {
+  width: min(30rem, 100%); max-height: 92vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 1rem;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 1.2rem; box-shadow: var(--shadow-lg);
+}
+.cropper-head { display: flex; flex-direction: column; gap: .15rem; }
+.cropper-head strong { font-size: 1.1rem; }
+
+.cropper-frame {
+  position: relative; overflow: hidden; width: 100%;
+  background: var(--sunk); border: 1px solid var(--line); border-radius: 10px;
+  cursor: grab; touch-action: none; user-select: none;
+}
+.cropper-frame:active { cursor: grabbing; }
+.cropper-frame.round { border-radius: 50%; }
+.cropper-frame img {
+  position: absolute; top: 0; left: 0; max-width: none;
+  will-change: transform; pointer-events: none;
+}
+
+/* Thirds, so a face can be put somewhere deliberate. */
+.cropper-grid {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(to right, transparent calc(33.33% - 1px), rgba(255,255,255,.28) 33.33%, transparent calc(33.33% + 1px)),
+    linear-gradient(to right, transparent calc(66.66% - 1px), rgba(255,255,255,.28) 66.66%, transparent calc(66.66% + 1px)),
+    linear-gradient(to bottom, transparent calc(33.33% - 1px), rgba(255,255,255,.28) 33.33%, transparent calc(33.33% + 1px)),
+    linear-gradient(to bottom, transparent calc(66.66% - 1px), rgba(255,255,255,.28) 66.66%, transparent calc(66.66% + 1px));
+}
+
+.cropper-zoom { display: flex; flex-direction: column; gap: .35rem; }
+.cropper-zoom input[type="range"] { width: 100%; accent-color: var(--accent); }

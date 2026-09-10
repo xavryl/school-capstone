@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { mediaUrl, initials, YEAR_LEVELS, type Profile } from '@/lib/profile';
+import ImageCropper from './ImageCropper';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -31,20 +32,31 @@ export default function ProfileEditor({
   const avatarInput = useRef<HTMLInputElement>(null);
   const bannerInput = useRef<HTMLInputElement>(null);
 
+  // A picked file is not uploaded as it came off the camera: it goes to the
+  // cropper, and what the cropper draws is what is stored.
+  const [cropping, setCropping] = useState<{ kind: 'avatar' | 'banner'; file: File } | null>(null);
+
   const set = (k: keyof typeof form) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  async function upload(kind: 'avatar' | 'banner', file: File) {
+  /** Chosen, not yet uploaded. The guard is here so a huge file is refused
+   *  before the browser tries to decode it into a cropper. */
+  function pick(kind: 'avatar' | 'banner', file: File) {
     if (file.size > MAX_BYTES) {
       setMsg({ kind: 'bad', text: `${file.name} is over 5 MB. Please pick a smaller image.` });
       return;
     }
     setMsg(null);
+    setCropping({ kind, file });
+  }
+
+  async function upload(kind: 'avatar' | 'banner', file: File) {
+    setMsg(null);
     setBusy(kind === 'avatar' ? 'Uploading picture…' : 'Uploading banner…');
 
     const supabase = createClient();
-    const ext = (file.name.split('.').pop() ?? 'jpg').toLowerCase();
+    const ext = (file.type === 'image/jpeg' ? 'jpg' : file.name.split('.').pop() ?? 'jpg').toLowerCase();
     // Timestamped filename: reusing one path would leave the browser showing
     // the cached old image after a change.
     const path = `${profile.id}/${kind}-${Date.now()}.${ext}`;
@@ -201,7 +213,7 @@ export default function ProfileEditor({
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) upload('avatar', f);
+          if (f) pick('avatar', f);
           e.target.value = '';
         }}
       />
@@ -212,10 +224,23 @@ export default function ProfileEditor({
         hidden
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) upload('banner', f);
+          if (f) pick('banner', f);
           e.target.value = '';
         }}
       />
+
+      {cropping && (
+        <ImageCropper
+          file={cropping.file}
+          kind={cropping.kind}
+          onCancel={() => setCropping(null)}
+          onDone={(cropped) => {
+            const kind = cropping.kind;
+            setCropping(null);
+            upload(kind, cropped);
+          }}
+        />
+      )}
 
       {busy && <p className="notice">{busy}</p>}
       {msg && <p className={`notice ${msg.kind === 'bad' ? 'bad' : 'good'}`}>{msg.text}</p>}
