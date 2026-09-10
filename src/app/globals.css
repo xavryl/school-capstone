@@ -957,3 +957,24 @@ body:has(.bubble) .faq-fab { opacity: 0; pointer-events: none; }
 .ticket-title { font-size: 1.04rem; line-height: 1.4; }
 .ticket-detail { margin: 0; font-size: .96rem; line-height: 1.55; }
 .ticket .row { gap: .5rem; flex-wrap: wrap; align-items: center; }
+
+/* ---------------------------------------------------------- live badge -- */
+/* Small on purpose. It answers one question -- am I looking at now? -- and
+   is not meant to compete with the heading beside it. */
+.live {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .82rem; font-weight: 700; letter-spacing: .02em;
+  color: var(--faint);
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: .1rem .55rem .1rem .45rem;
+}
+.live.on { color: var(--good); border-color: var(--good); background: var(--good-soft); }
+.live-dot {
+  width: .45rem; height: .45rem; border-radius: 50%;
+  background: currentColor; flex: none; opacity: .55;
+}
+.live.on .live-dot { opacity: 1; animation: live-pulse 2.4s ease-in-out infinite; }
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .35; transform: scale(.82); }
+}

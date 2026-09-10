@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getStaffGate, today, scopeLabel } from '@/lib/staff';
 import type { Department } from '@/lib/types';
+import Live from './Live';
 
 export const dynamic = 'force-dynamic';
 
@@ -88,7 +89,10 @@ export default async function StaffOverview({ searchParams }: Props) {
   return (
     <div className="stack-lg">
       <header className="stack">
-        <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+        <span className="row" style={{ gap: '.6rem', alignItems: 'center' }}>
+          <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+          <Live tables={['requests', 'inquiries', 'appointments', 'queue_tickets']} />
+        </span>
         <h1>Today at a glance</h1>
         <p className="lede">
           {new Date().toLocaleDateString([], {
@@ -141,8 +145,9 @@ export default async function StaffOverview({ searchParams }: Props) {
       <section className="stack">
         <h2>What people are asking for</h2>
         <p className="muted">
-          Open requests by service. This is where the two offices genuinely differ —
-          the registrar issues documents, the treasury settles money.
+          {ctx.departments.length > 1
+            ? 'Open requests by service. This is where the two offices genuinely differ — the registrar issues documents, the treasury settles money.'
+            : 'Open requests by service, so you can see what today is actually made of.'}
         </p>
         <div className={ctx.departments.length > 1 ? 'grid2' : ''}>
           {byService.map((office) => (

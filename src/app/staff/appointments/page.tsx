@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { getStaffGate, today, scopeLabel } from '@/lib/staff';
 import AppointmentList, { type StaffAppointment } from '../AppointmentList';
+import Live from '../Live';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,7 +50,10 @@ export default async function StaffAppointmentsPage({ searchParams }: Props) {
   return (
     <div className="stack-lg">
       <header className="stack">
-        <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+        <span className="row" style={{ gap: '.6rem', alignItems: 'center' }}>
+          <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+          <Live tables={['appointments']} />
+        </span>
         <h1>Appointments</h1>
         <form className="row" style={{ alignItems: 'flex-end' }}>
           {ctx.isAdmin && <input type="hidden" name="dept" value={ctx.scope} />}

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getStaffGate, scopeLabel } from '@/lib/staff';
 import type { InquiryStatus } from '@/lib/types';
 import InquiryRow from '../InquiryRow';
+import Live from '../Live';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +47,10 @@ export default async function InquiriesPage({ searchParams }: Props) {
   return (
     <div className="stack-lg">
       <header className="stack">
-        <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+        <span className="row" style={{ gap: '.6rem', alignItems: 'center' }}>
+          <span className="eyebrow">{scopeLabel(ctx.scope)}</span>
+          <Live tables={['inquiries']} />
+        </span>
         <h1>Guest inquiries</h1>
         <p className="lede">
           Guests have no account, so a reply here is the only way they hear back — it

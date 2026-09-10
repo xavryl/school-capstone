@@ -17,9 +17,11 @@ const TABS = [
   { href: '/staff/inquiries', label: 'Inquiries' },
 ];
 
-const MANAGE_TABS = [{ href: '/staff/reports', label: 'Reports' }];
-
-const ADMIN_TABS = [{ href: '/staff/people', label: 'Staff accounts' }];
+// Running an office: its numbers, and the people who work its counter.
+const MANAGE_TABS = [
+  { href: '/staff/reports', label: 'Reports' },
+  { href: '/staff/people', label: 'Staff accounts' },
+];
 
 const SCOPES: { id: Scope; label: string }[] = [
   { id: 'all', label: 'Both' },
@@ -153,16 +155,6 @@ export default function StaffSidebar({
                 {isAdmin ? 'System administrator' : 'Office administrator'}
               </span>
               {MANAGE_TABS.map((t) => tab(t.href, t.label))}
-              {isAdmin &&
-                ADMIN_TABS.map((t) => (
-                  <Link
-                    key={t.href}
-                    href={t.href}
-                    className={`staff-tab${active(t.href) ? ' on' : ''}`}
-                  >
-                    {t.label}
-                  </Link>
-                ))}
             </>
           )}
         </nav>
